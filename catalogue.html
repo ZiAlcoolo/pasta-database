@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Catalogue nutritionnel — Aperçu</title>
+
+    <!-- jQuery + DataTables + Responsive + Buttons -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
+
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f7f8fb;
+            color: #111;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            align-items: center;
+        }
+
+        .filters select,
+        .filters button {
+            padding: 6px 8px;
+        }
+
+        .controls {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        #nutritionTable {
+            width: 100%;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .small-note {
+            font-size: 0.85rem;
+            color: #555;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Catalogue nutritionnel — Aperçu</h1>
+
+    <div class="controls">
+        <div class="filters" aria-label="Filtres">
+            <label>Continent
+                <select id="continentSelect">
+                    <!-- <option value="">Tous</option> -->
+                </select>
+            </label>
+
+            <label>Pays
+                <select id="countrySelect">
+                    <!-- <option value="">Tous</option> -->
+                </select>
+            </label>
+
+            <label>Type de production
+                <select id="typeSelect">
+                    <!-- <option value="">Tous</option> -->
+                </select>
+            </label>
+
+            <div id="extraFiltersContainer"></div>
+            <button id="resetFilters">Réinitialiser filtres</button>
+        </div>
+
+        <div>
+            <small class="small-note">Cliquez sur une ligne pour ouvrir la fiche complète.</small>
+        </div>
+    </div>
+
+    <table id="nutritionTable" class="display nowrap" style="width:100%"></table>
+
+    <script>
+        /******************************************************************
+         * CONFIG (à adapter) :
+         * - Remplacer sheetID et sheetName
+         * - ENABLED_FILTERS : activer/désactiver d'autres filtres en modifiant ce bloc
+         ******************************************************************/
+        const sheetID = "1ziYU_8TEzZey5zwPWsEty3Ufimp8VxFp9uRGjw5ou4k"; // 🔹 Remplace par ton ID Google Sheet
+        const sheetName = "1"; // 🔹 Nom exact de l’onglet
+
+        const apiURL = `https://opensheet.elk.sh/${sheetID}/${encodeURIComponent(sheetName)}`;
+
+        // Champs utilisés par défaut (adapter si ton header est différent)
+        const FIELD = {
+            name: "Nom du Produit",
+            type: "Type of production",
+            productionLocation: "Production location", // colonne du pays / lieu de production (adapter si différent)
+            cost: "Cost", // exemple, existe dans ton extrait
+            link: "Link"
+        };
+
+        // Filtres supplémentaires que tu pourras activer/désactiver dans le code
+        // Clé = label affiché, value = nom exact de la colonne dans le sheet
+        const ENABLED_FILTERS = {
+            // "Acceptability": "Acceptability",    // true => actif ; false => caché (ici on met la clé si exist.)
+            // "Shelf Life": "Shelf Life:",
+            // "Production location (raw)": FIELD.productionLocation
+            // Ajoute ici d'autres paires "Label":"Nom de colonne" si besoin
+        };
+
+        /******************************************************************
+         * Mapping pays -> continent (modifie/complète si nécessaire)
+         * Si ton sheet contient déjà une colonne "Continent", tu peux ignorer ce mapping.
+         ******************************************************************/
+        const countryToContinent = {
+            "France": "Europe", "Germany": "Europe", "Spain": "Europe", "Italy": "Europe", "United Kingdom": "Europe", "UK": "Europe", "Netherlands": "Europe", "Belgium": "Europe",
+            "United States": "North America", "USA": "North America", "United States of America": "North America", "Canada": "North America", "Mexico": "North America",
+            "Brazil": "South America", "Argentina": "South America", "Chile": "South America",
+            "China": "Asia", "India": "Asia", "Japan": "Asia", "South Korea": "Asia", "Pakistan": "Asia", "Bangladesh": "Asia",
+            "Australia": "Oceania", "New Zealand": "Oceania",
+            "Nigeria": "Africa", "Kenya": "Africa", "Ethiopia": "Africa", "Ghana": "Africa", "South Africa": "Africa", "Egypt": "Africa", "Morocco": "Africa",
+            "Turkey": "Asia", "Russia": "Europe",
+            // ajoute ici d'autres mappings selon tes données
+        };
+
+        /******************************************************************
+         * Fin config
+         ******************************************************************/
+        $(function () {
+            // fetch data
+            $.getJSON(apiURL).done(function (data) {
+
+                if (!data || data.length === 0) {
+                    $('body').append("<p>Erreur : aucune donnée trouvée. Vérifie l'ID du sheet / le nom de l'onglet et que la feuille est publiée.</p>");
+                    return;
+                }
+
+                // --- Build lists for filters (countries, types) from data ---
+                const countriesSet = new Set();
+                const typesSet = new Set();
+                const extraSets = {}; // pour other enabled filters
+
+                data.forEach(row => {
+                    const rawLoc = row[FIELD.productionLocation] || "";
+                    // heuristique : si le champ contient une virgule, on prend la dernière partie comme pays
+                    let candidateCountry = rawLoc.trim();
+                    if (candidateCountry.includes(",")) {
+                        const parts = candidateCountry.split(",");
+                        candidateCountry = parts[parts.length - 1].trim();
+                    }
+                    if (candidateCountry) countriesSet.add(candidateCountry);
+
+                    const t = row[FIELD.type] || "";
+                    if (t) typesSet.add(t);
+
+                    // other enabled filters
+                    Object.values(ENABLED_FILTERS).forEach(colName => {
+                        if (!extraSets[colName]) extraSets[colName] = new Set();
+                        if (row[colName]) extraSets[colName].add(row[colName]);
+                    });
+                });
+
+                // Build continent list from country list & mapping
+                const continentToCountries = {}; // {continent: Set(countries)}
+                countriesSet.forEach(c => {
+                    const cont = countryToContinent[c] || "Autre / Inconnu";
+                    if (!continentToCountries[cont]) continentToCountries[cont] = new Set();
+                    continentToCountries[cont].add(c);
+                });
+
+                // populate continent select
+                const $continent = $('#continentSelect');
+                $continent.append(`<option value="">Tous</option>`);
+                Object.keys(continentToCountries).sort().forEach(cont => {
+                    $continent.append(`<option value="${cont}">${cont}</option>`);
+                });
+
+                // populate country select (all countries by default)
+                const $country = $('#countrySelect');
+                $country.append(`<option value="">Tous</option>`);
+                Array.from(countriesSet).sort().forEach(c => $country.append(`<option value="${c}">${c}</option>`));
+
+                // populate type select
+                const $type = $('#typeSelect');
+                $type.append(`<option value="">Tous</option>`);
+                Array.from(typesSet).sort().forEach(t => $type.append(`<option value="${t}">${t}</option>`));
+
+                // populate extra filters container from ENABLED_FILTERS
+                const $extra = $('#extraFiltersContainer');
+                Object.entries(ENABLED_FILTERS).forEach(([label, colName]) => {
+                    // skip if column doesn't exist in sheet
+                    const found = data.some(r => r.hasOwnProperty(colName) && r[colName] !== "");
+                    if (!found) return;
+                    const setValues = Array.from(extraSets[colName] || []).filter(v => v !== "").sort();
+                    if (setValues.length === 0) return;
+
+                    const id = 'filter_' + colName.replace(/\s+/g, '_');
+                    const $sel = $(`<label>${label} <select id="${id}"><option value="">Tous</option></select></label>`);
+                    setValues.forEach(v => $sel.find('select').append(`<option value="${v}">${v}</option>`));
+                    $extra.append($sel);
+                });
+
+                // ---- DataTable: columns to show in overview ----
+                const overviewColumns = [
+                    { title: FIELD.name, data: FIELD.name },
+                    { title: FIELD.type, data: FIELD.type },
+                    { title: FIELD.productionLocation, data: FIELD.productionLocation },
+                    { title: FIELD.cost, data: FIELD.cost },
+                    {
+                        title: FIELD.link, data: FIELD.link, render: function (d) {
+                            if (!d) return '';
+                            return `<a href="${d}" target="_blank" rel="noopener">Lien</a>`;
+                        }
+                    }
+                ];
+
+                // initialize DataTable
+                const table = $('#nutritionTable').DataTable({
+                    data: data,
+                    columns: overviewColumns,
+                    responsive: true,
+                    pageLength: 10,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        'copy', 'csv', 'excel', 'pdf', 'print'
+                    ],
+                    language: {
+                        url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/fr-FR.json'
+                    }
+                });
+
+                // custom filter: use DataTables ext.search
+                $.fn.dataTable.ext.search.push(function (settings, rowDataArray, dataIndex) {
+                    // only apply to our table
+                    if (settings.nTable !== $('#nutritionTable')[0]) return true;
+
+                    const row = table.row(dataIndex).data(); // object (original row)
+
+                    // 1) continent -> country filtering
+                    const chosenCont = $('#continentSelect').val();
+                    const chosenCountry = $('#countrySelect').val();
+
+                    if (chosenCountry) {
+                        // compare chosen country substring-insensitive to the productionLocation
+                        const loc = (row[FIELD.productionLocation] || "").toLowerCase();
+                        if (!loc.includes(chosenCountry.toLowerCase())) return false;
+                    } else if (chosenCont) {
+                        // get country from location heuristically
+                        let loc = (row[FIELD.productionLocation] || "").trim();
+                        let countryCandidate = loc;
+                        if (loc.includes(",")) {
+                            const parts = loc.split(",");
+                            countryCandidate = parts[parts.length - 1].trim();
+                        }
+                        const cont = countryToContinent[countryCandidate] || "Autre / Inconnu";
+                        if (cont !== chosenCont) return false;
+                    }
+
+                    // 2) Type of production filter
+                    const chooseType = $('#typeSelect').val();
+                    if (chooseType) {
+                        const t = (row[FIELD.type] || "");
+                        if (t.toLowerCase() !== chooseType.toLowerCase()) return false;
+                    }
+
+                    // 3) extra filters
+                    let passExtra = true;
+                    Object.entries(ENABLED_FILTERS).forEach(([label, colName]) => {
+                        const sel = $('#filter_' + colName.replace(/\s+/g, '_'));
+                        if (sel.length === 0) return; // not present
+                        const val = sel.val();
+                        if (val) {
+                            const cell = (row[colName] || "");
+                            // match contains or exact? here we do contains-insensitive
+                            if (!cell.toLowerCase().includes(val.toLowerCase())) passExtra = false;
+                        }
+                    });
+
+                    if (!passExtra) return false;
+
+                    return true;
+                });
+
+                // redraw table after changing filters
+                $('#continentSelect').on('change', function () {
+                    const cont = $(this).val();
+                    // rebuild country options to show only countries in this continent
+                    $country.find('option').remove();
+                    $country.append(`<option value="">Tous</option>`);
+                    if (!cont) {
+                        Array.from(countriesSet).sort().forEach(c => $country.append(`<option value="${c}">${c}</option>`));
+                    } else {
+                        const list = Array.from(continentToCountries[cont] || []).sort();
+                        list.forEach(c => $country.append(`<option value="${c}">${c}</option>`));
+                    }
+                    table.draw();
+                });
+
+                $('#countrySelect, #typeSelect, #resetFilters').on('change click', function () {
+                    if (this.id === 'resetFilters') {
+                        $('#continentSelect, #countrySelect, #typeSelect').val('');
+                        $('#extraFiltersContainer select').val('');
+                    }
+                    table.draw();
+                });
+
+                $('#extraFiltersContainer').on('change', 'select', function () { table.draw(); });
+
+                // Clicking a row opens detail page
+                $('#nutritionTable tbody').on('click', 'tr', function () {
+                    const rowObj = table.row(this).data();
+                    if (!rowObj) return;
+                    const productName = rowObj[FIELD.name];
+                    if (!productName) return;
+                    const url = `detail.html?product=${encodeURIComponent(productName)}`;
+                    window.location.href = url;
+                });
+
+                // small UX: pointer on rows
+                $('#nutritionTable').on('mouseenter', 'tbody tr', function () { $(this).css('cursor', 'pointer'); }).on('mouseleave', 'tbody tr', function () { $(this).css('cursor', ''); });
+            })
+                .fail(function () {
+                    $('body').append("<p>Erreur lors du chargement du Google Sheet. Vérifie l'ID et que la feuille est publiée en public.</p>");
+                });
+        });
+    </script>
+</body>
+
+</html>
