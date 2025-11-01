@@ -4,7 +4,7 @@ body {
     background: #f7f8fb;
     color: #111;
     background: #DFE0DF;
-    background: linear-gradient(134deg, rgba(223, 224, 223, 1) 0%, rgba(231, 230, 226, 1) 50%, rgba(248, 230, 180, 1) 100%);
+    background: linear-gradient(134deg, rgb(246 246 246) 0%, rgb(233 239 243) 50%, #275db066 100%);
 }
 
 #header_logo {
