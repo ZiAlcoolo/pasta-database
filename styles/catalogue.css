@@ -1,0 +1,214 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background: #f7f8fb;
+    color: #111;
+    background: #DFE0DF;
+    background: linear-gradient(134deg, rgba(223, 224, 223, 1) 0%, rgba(231, 230, 226, 1) 50%, rgba(248, 230, 180, 1) 100%);
+}
+
+#header_logo {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border-radius: 7px;
+    background-color: white;
+    height: 1.5rem;
+    width: 1.5rem;
+}
+
+#header_logo img {
+    height: 100%;
+
+}
+
+h1 {
+    text-align: left;
+    margin-bottom: 8px;
+    font-weight: 200;
+}
+
+.filters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filters select,
+.filters button {
+    padding: 6px 8px;
+}
+
+.controls {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+#nutritionTable {
+    width: 100%;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+table.dataTable thead th {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #111111b7;
+}
+
+
+
+
+
+
+
+/* CSS PERSO */
+#CatalogueTable {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+    align-items: stretch;
+    background-color: transparent;
+    border-radius: 30px;
+    gap: 0;
+    background-color: #ffffff9f;
+}
+
+.dataTables_wrapper {
+    display: flex;
+    align-items: stretch;
+    background-color: white;
+    padding: 1rem;
+    box-sizing: border-box;
+    border-radius: 30px;
+    width: 100%;
+}
+
+table.dataTable.no-footer {
+    border: none;
+}
+
+#exportOverlayMenu {
+    right: 0;
+    margin-top: 5px;
+    z-index: 1;
+    background-color: white;
+    border-radius: 20px;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 5px;
+}
+
+#exportOverlayMenu .btn-1 {
+    padding: 5px 10px;
+}
+
+#tableSearchBar {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    height: 34px;
+    width: fit-content;
+    box-sizing: border-box;
+    padding: 5px 10px;
+    gap: 5px;
+}
+
+#tableSearchBar button {
+    cursor: pointer;
+    background: none;
+    border: none;
+    height: 100%;
+    padding: 0;
+    width: fit-content;
+}
+
+#tableSearchBar img {
+    height: 1.5rem;
+}
+
+#tableSearchBar input {
+    border: none;
+    background: none;
+}
+
+
+
+
+.controls {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 0;
+    padding: 1rem;
+}
+
+.filters {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex: 1;
+    box-sizing: border-box;
+}
+
+#resetFilters {
+    height: 34px;
+    width: 34px;
+}
+
+.filters select {
+    background-color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 35px 10px 20px;
+    /* padding-right augmenté */
+    color: black;
+    appearance: none;
+    outline: none;
+    width: auto;
+    transition: width 0.2s ease;
+
+    /* 🔹 Flèche personnalisée */
+    background-image: url("https://img.icons8.com/fluency-systems-filled/100/expand-arrow.png");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    /* 🔸 plus vers la gauche */
+    background-size: .8rem auto;
+
+    font-size: .8rem;
+    cursor: pointer;
+}
+
+
+
+.btn-1 {
+    background-color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 20px 10px 20px;
+    color: black;
+    font-size: .8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.btn-1:hover {
+    background-color: #fdfdfd;
+}
+
+.btn-1 img {
+    height: 1rem;
+}
