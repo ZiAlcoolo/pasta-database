@@ -26,13 +26,17 @@
 
 
     <!-- STYLES -->
+    <link rel="stylesheet" href="./styles/main-style.css">
     <link rel="stylesheet" href="./styles/catalogue.css">
 
 </head>
 
 <body>
-    <div id="header_logo"><img src="./media/icons/temp-logo.png"></div>
-    
+    <div id="header">
+
+        <div class="header_btn" id="header_logo"><img src="./media/icons/temp-logo.png"></div>
+    </div>
+
     <h1>Catalogue nutritionnel</h1>
     <p>Découvrez tous les types de pâtes proposées autour du monde et trouvez celles qui correspondent le mieux à vos
         besoins et attentes parmis une large sélection de choix couramment mise à jour.</p>
@@ -63,21 +67,23 @@
                         src="https://img.icons8.com/fluency-systems-filled/1000/clear-filters.png"></button>
             </div>
             <div id="tableSearchBar" class="btn-1">
-                <button onclick="$('#searchInput').animate({width: 'toggle'});"><img src="https://img.icons8.com/fluency-systems-filled/1000/search.png"></button>
-                <input type="text" id="searchInput" style="display: none;" placeholder="Rechercher dans tout le catalogue...">
+                <button onclick="$('#searchInput').animate({width: 'toggle'});"><img
+                        src="https://img.icons8.com/fluency-systems-filled/1000/search.png"></button>
+                <input type="text" id="searchInput" style="display: none;" placeholder="Rechercher...">
             </div>
 
             <div id="openExportOverlayMenu">
                 <button class="btn-1" onclick="$('#exportOverlayMenu').slideToggle('fast')">Export</button>
                 <div id="exportOverlayMenu" style="display: none;">
+                    <button class="btn-1" id="exportClipboard">Copier</button>
                     <button class="btn-1" id="exportCSV">CSV</button>
                     <button class="btn-1" id="exportExcel">Excel</button>
-                    <button class="btn-1" id="exportPrint">Impression</button>
+                    <button class="btn-1" id="exportPDF">PDF</button>
                 </div>
             </div>
         </div>
 
-        <table id="nutritionTable" class="display nowrap" style="width:100%"></table>
+        <table id="nutritionTable" class="display nowrap"></table>
     </div>
 
 
@@ -175,25 +181,97 @@
                     { title: FIELD.name, data: FIELD.name },
                     { title: FIELD.type, data: FIELD.type },
                     { title: FIELD.productionLocation, data: FIELD.productionLocation },
-                    { title: FIELD.cost, data: FIELD.cost }
+                    { title: FIELD.cost, data: FIELD.cost },
+                    {
+                        title: "",
+                        data: FIELD.link,
+                        render: function (data, type, row) {
+                            if (!data) return '<span style="color:#888;">—</span>';
+                            return `<img height="20" src="https://img.icons8.com/fluency-systems-filled/50/long-arrow-right.png">`;
+                        },
+                        orderable: false,
+                        searchable: false
+                    }
                 ];
 
-                // init DataTable
+                /**************************************************************
+         * 🧩 Initialisation DataTable avec export
+         **************************************************************/
                 const table = $('#nutritionTable').DataTable({
                     data,
                     columns,
                     pageLength: 20,
-                    responsive: true,
-                    dom: 't', // no auto search bar
-                    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/fr-FR.json' }
+                    responsive: false,
+                    dom: 'Brt', // B = boutons export, r = processing, t = table
+                    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/fr-FR.json' },
+                    buttons: [
+                        {
+                            extend: 'copyHtml5',
+                            text: 'Copier',
+                            className: 'btn-1',
+                            exportOptions: { columns: ':visible:not(:last-child)' } // exclut "Lien"
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: 'CSV',
+                            className: 'btn-1',
+                            exportOptions: { columns: ':visible:not(:last-child)' }
+                        },
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Excel',
+                            className: 'btn-1',
+                            exportOptions: { columns: ':visible:not(:last-child)' }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: 'PDF',
+                            className: 'btn-1',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+                            exportOptions: { columns: ':visible:not(:last-child)' },
+                            customize: function (doc) {
+                                doc.styles.tableHeader.alignment = 'left';
+                                doc.defaultStyle.fontSize = 9;
+                                doc.pageMargins = [40, 40, 40, 40];
+                            }
+                        }
+                    ]
                 });
 
 
-                // recherche manuelle globale
+                /**************************************************************
+                * 🧾 Liaison boutons export personnalisés
+                **************************************************************/
+                $('#exportClipboard').on('click', () => table.button('.buttons-copy').trigger());
+                $('#exportCSV').on('click', () => table.button('.buttons-csv').trigger());
+                $('#exportExcel').on('click', () => table.button('.buttons-excel').trigger());
+                $('#exportPDF').on('click', () => table.button('.buttons-pdf').trigger());
+
+
+                // Fonction pour normaliser le texte (supprime les accents et met en minuscule)
+                function normalizeText(text) {
+                    return text
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .toLowerCase();
+                }
+
+                // Surcharge la fonction de recherche de DataTables pour la rendre accent-insensible
+                $.fn.dataTable.ext.type.search.string = function (data) {
+                    return !data
+                        ? ''
+                        : typeof data === 'string'
+                            ? normalizeText(data)
+                            : data;
+                };
+
+                // Recherche manuelle globale (accent-insensible)
                 $('#tableSearchBar').on('keyup', '#searchInput', function () {
-                    const value = $(this).val();
+                    const value = normalizeText($(this).val());
                     table.search(value).draw();
                 });
+
 
 
                 // filtres continent / pays / type / extra
@@ -272,13 +350,17 @@
                     });
                 });
 
-                // clic sur une ligne → page détail
-                $('#nutritionTable tbody').on('click', 'tr', function () {
-                    const row = table.row(this).data();
+                // clic sur une icône de lien → page détail
+                $('#nutritionTable tbody').on('click', 'td:last-child', function () {
+                    const tr = $(this).closest('tr');
+                    const row = table.row(tr).data();
+
                     if (row && row[FIELD.name]) {
-                        window.location.href = `detail.html?product=${encodeURIComponent(row[FIELD.name])}`;
+                        const productName = encodeURIComponent(row[FIELD.name]);
+                        window.location.href = `detail.html?product=${productName}`;
                     }
                 });
+
             });
         });
 

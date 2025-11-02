@@ -1,80 +1,191 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-  <meta charset="utf-8" />
-  <title>Détail produit</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; margin:28px; background:#f7f8fb; color:#111; }
-    .card { background:white; padding:18px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.06); max-width:1000px; margin:auto; }
-    h1 { margin-top:0; }
-    table { width:100%; border-collapse:collapse; margin-top:12px; }
-    td { padding:8px 10px; vertical-align:top; border-bottom:1px solid #eee; }
-    td.key { width:220px; font-weight:600; color:#333; background:#fafafa; }
-    .back { margin-bottom:14px; display:inline-block; }
-  </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Détail produit</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- STYLES -->
+    <link rel="stylesheet" href="./styles/main-style.css">
+    <link rel="stylesheet" href="./styles/detail-produit.css">
 </head>
+
 <body>
-  <a class="back" href="catalogue.html">← Retour</a>
-  <div id="content" class="card">
-    <h1>Chargement…</h1>
-    <div id="details"></div>
-  </div>
+    <div id="header">
+        <div class="header_btn" id="back-btn" onclick="window.location = './catalogue.html'"><img
+                src="https://img.icons8.com/fluency-systems-filled/500/back--v1.png"></div>
+        <div class="header_btn" id="header_logo"><img src="./media/icons/temp-logo.png"></div>
+    </div>
 
-  <script>
-  // Config : même source que catalogue.html
-  const sheetID = "1ziYU_8TEzZey5zwPWsEty3Ufimp8VxFp9uRGjw5ou4k";          // <-- Remplace par l'ID
-  const sheetName = "1";          // <-- Nom de l'onglet
-  const apiURL = `https://opensheet.elk.sh/${sheetID}/${encodeURIComponent(sheetName)}`;
+    <div id="content">
+        <h1>Titre produit…</h1>
+        <div id="details">
+            <p style="padding: 1rem; margin: 0;">Données en cours de récupération...</p>
+        </div>
+    </div>
 
-  // Récupérer param ?product=...
-  function getParam(name) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(name);
-  }
+    <script>
+        // Config : même source que catalogue.html
+        const sheetID = "1ziYU_8TEzZey5zwPWsEty3Ufimp8VxFp9uRGjw5ou4k";          // <-- Remplace par l'ID
+        const sheetName = "1";          // <-- Nom de l'onglet
+        const apiURL = `https://opensheet.elk.sh/${sheetID}/${encodeURIComponent(sheetName)}`;
 
-  const desiredProduct = getParam('product');
-
-  if(!desiredProduct) {
-    $('#content').html('<h2>Produit non spécifié dans l’URL.</h2><p>Exemple : detail.html?product=Essai%20Alpha%20001</p>');
-  } else {
-    $.getJSON(apiURL).done(function(data){
-      if(!data || data.length === 0) {
-        $('#content').html('<p>Erreur : aucune donnée trouvée depuis le Google Sheet.</p>');
-        return;
-      }
-
-      // find row by product name (case-insensitive exact match)
-      const target = decodeURIComponent(desiredProduct).toLowerCase();
-      let found = data.find(r => (r['Nom du Produit']||'').toLowerCase() === target);
-      if(!found) {
-        // fallback: partial match
-        found = data.find(r => (r['Nom du Produit']||'').toLowerCase().includes(target));
-      }
-
-      if(!found) {
-        $('#content').html(`<h2>Produit introuvable :</h2><p>Recherche : <strong>${desiredProduct}</strong></p>`);
-        return;
-      }
-
-      // Build detail table: list all keys
-      const $details = $('<table></table>');
-      Object.keys(found).forEach(key => {
-        const val = found[key] || '';
-        let displayVal = $('<div>').text(val).html(); // escape
-        // if it's a link-looking value, render as anchor
-        if (String(val).startsWith('http://') || String(val).startsWith('https://')) {
-          displayVal = `<a href="${val}" target="_blank" rel="noopener">${val}</a>`;
+        // Récupérer param ?product=...
+        function getParam(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.get(name);
         }
-        $details.append(`<tr><td class="key">${key}</td><td class="value">${displayVal}</td></tr>`);
-      });
 
-      $('#content').html(`<h1>${found['Nom du Produit'] || 'Détail produit'}</h1>`);
-      $('#content').append($details);
-    }).fail(function(){
-      $('#content').html('<p>Erreur lors du chargement du Google Sheet.</p>');
-    });
-  }
-  </script>
+        const desiredProduct = getParam('product');
+        $('h1').text(desiredProduct)
+
+        if (!desiredProduct) {
+            $('#content').html('<h2>Produit non spécifié dans l’URL.</h2><p>Exemple : detail.html?product=Essai%20Alpha%20001</p>');
+        } else {
+            $.getJSON(apiURL).done(function (data) {
+                if (!data || data.length === 0) {
+                    $('#content').html('<p>Erreur : aucune donnée trouvée depuis le Google Sheet.</p>');
+                    return;
+                }
+
+                // find row by product name (case-insensitive exact match)
+                const target = decodeURIComponent(desiredProduct).toLowerCase();
+                let found = data.find(r => (r['Nom du Produit'] || '').toLowerCase() === target);
+                if (!found) {
+                    // fallback: partial match
+                    found = data.find(r => (r['Nom du Produit'] || '').toLowerCase().includes(target));
+                }
+
+                if (!found) {
+                    $('#content').html(`<h2>Produit introuvable :</h2><p>Recherche : <strong>${desiredProduct}</strong></p>`);
+                    return;
+                }
+
+                // Build detail table: list all keys
+                const $details = $('<table></table>');
+                Object.keys(found).forEach(key => {
+                    const val = found[key] || '';
+                    let displayVal = $('<div>').text(val).html(); // escape
+                    // if it's a link-looking value, render as anchor
+                    if (String(val).startsWith('http://') || String(val).startsWith('https://')) {
+                        displayVal = `<a href="${val}" target="_blank" rel="noopener">${val}</a>`;
+                    }
+                    $details.append(`<tr><td class="key">${key}</td><td class="value">${displayVal}</td></tr>`);
+                });
+
+                $('#content').html(`<h1>${found['Nom du Produit'] || 'Détail produit'}</h1>
+                <div id="details">
+                    <div class="card-header">
+                        <div class="card-infos">
+                            <h2>Données produits</h2>
+                            <p class="sub-title">Informations détaillées concernant le produit.</p>
+                        </div>
+                        <div id="tableSearchBar" class="btn-1">
+                            <button onclick="$('#searchInput').animate({width: 'toggle'});"><img
+                                    src="https://img.icons8.com/fluency-systems-filled/1000/search.png"></button>
+                            <input type="text" id="searchInput" style="display: none;" placeholder="Rechercher...">
+                        </div>
+                        <button id="copyToClipboard" class="btn-1" onclick="CopyTableToClipboard()"><img src="https://img.icons8.com/fluency-systems-regular/500/copy--v1.png"></button>
+                    </div>
+                </div>`);
+                $('#content #details').append($details);
+            }).fail(function () {
+                $('#content').html('<p>Erreur lors du chargement du Google Sheet.</p>');
+            });
+
+
+
+
+
+            // ============ BARRE DE RECHERCHE =============
+
+            // Fonction pour normaliser le texte (supprime les accents)
+            function normalizeText(text) {
+                return text
+                    .normalize("NFD") // décompose les caractères accentués
+                    .replace(/[\u0300-\u036f]/g, "") // supprime les diacritiques
+                    .toLowerCase();
+            }
+
+            // Fonction pour surligner le texte correspondant à la recherche
+            function highlightText(element, searchTerm) {
+                const text = element.textContent;
+                const normalizedText = normalizeText(text);
+                const normalizedSearch = normalizeText(searchTerm);
+
+                // Recherche de toutes les occurrences
+                let resultHTML = "";
+                let i = 0;
+                while (i < text.length) {
+                    const subText = normalizedText.substring(i);
+                    const index = subText.indexOf(normalizedSearch);
+                    if (index === -1 || !normalizedSearch) {
+                        resultHTML += text.substring(i);
+                        break;
+                    }
+
+                    // Ajoute le texte avant la correspondance + la partie surlignée
+                    resultHTML += text.substring(i, i + index)
+                        + `<mark>${text.substring(i + index, i + index + searchTerm.length)}</mark>`;
+                    i += index + searchTerm.length;
+                }
+
+                element.innerHTML = resultHTML;
+            }
+
+            // Recherche dynamique accent-insensible avec surlignage
+            $(document).on('keyup', '#searchInput', function () {
+                const searchValue = $(this).val();
+
+                $('#details table tr').each(function () {
+                    const rowText = normalizeText($(this).text());
+                    const match = rowText.includes(normalizeText(searchValue));
+
+                    // Affiche ou masque la ligne selon la recherche
+                    $(this).toggle(match);
+
+                    // Supprime les anciens <mark>
+                    $(this).find('mark').contents().unwrap();
+
+                    // Surligne le texte correspondant si recherche active
+                    if (match && searchValue.trim() !== '') {
+                        $(this).find('td').each(function () {
+                            highlightText(this, searchValue);
+                        });
+                    }
+                });
+            });
+
+
+
+
+            // ============ COPIE TABLE PRODUIT DANS CLIPBOARD =============
+            function CopyTableToClipboard() {
+                let data = '';
+
+                // Parcours chaque ligne de la table
+                $('#details table tr').each(function () {
+                    const rowData = [];
+                    $(this).find('td').each(function () {
+                        rowData.push($(this).text().trim()); // récupère le texte de chaque cellule
+                    });
+                    if (rowData.length) {
+                        data += rowData.join('\t') + '\n'; // tabulation entre cellules
+                    }
+                });
+
+                // Copie dans le presse-papier
+                navigator.clipboard.writeText(data)
+                    .then(() => alert('Les données du produit ont été copiées dans le presse-papier ✅'))
+                    .catch(err => console.error('Erreur lors de la copie :', err));
+            }
+
+
+        }
+    </script>
 </body>
+
 </html>

@@ -1,0 +1,115 @@
+h1 {
+    margin: 2rem 0;
+}
+
+#details{
+    background: var(--semi-transparent);
+    border-radius:20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    max-width: 1000px;
+    margin: auto;
+    padding-bottom: .5rem;
+}
+
+#details .card-header{
+    display: flex;
+    flex-direction: row;
+    padding: 18px;
+    gap: 5px;
+}
+#details .card-header .card-infos{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+#details h2{
+    margin: 0;
+    font-weight: 600;
+}
+#details .sub-title{
+    color: #333333b2;
+    margin: 0;
+    margin-top: .5rem;
+}
+
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+}
+
+td {
+    padding: 8px 18px;
+    vertical-align: top;
+    border-bottom: 1px solid #ffffff;
+}
+
+td.key {
+    width: 220px;
+    font-weight: 600;
+    color: #333;
+    background: #fafafa;
+}
+
+
+
+
+.back {
+    margin-bottom: 14px;
+    display: inline-block;
+}
+
+
+
+#tableSearchBar {
+    background-color: #fff;
+
+    border-radius: 20px;
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    height: 34px;
+    width: fit-content;
+    box-sizing: border-box;
+    padding: 10px;
+    gap: 5px;
+}
+
+#tableSearchBar button {
+    cursor: pointer;
+    background: none;
+    border: none;
+    height: 100%;
+    padding: 0;
+    width: fit-content;
+}
+
+#tableSearchBar img {
+    height: 100%;
+}
+
+#tableSearchBar input {
+    border: none;
+    background: none;
+    font-size: .8rem;
+    outline: none;
+    color: black;
+}
+
+
+mark {
+    background-color: #ffe15b;
+    color: #000;
+    padding: 1px;
+    border-radius: 3px;
+}
+
+.btn-1#copyToClipboard{
+    border-radius: 20px;
+    display: flex;
+    height: 34px;
+    width: fit-content;
+    box-sizing: border-box;
+    padding: 10px;
+}

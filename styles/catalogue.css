@@ -1,35 +1,3 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background: #f7f8fb;
-    color: #111;
-    background: #DFE0DF;
-    background: linear-gradient(134deg, rgb(246 246 246) 0%, rgb(233 239 243) 50%, #275db066 100%);
-}
-
-#header_logo {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-    border-radius: 7px;
-    background-color: white;
-    height: 1.5rem;
-    width: 1.5rem;
-}
-
-#header_logo img {
-    height: 100%;
-
-}
-
-h1 {
-    text-align: left;
-    margin-bottom: 8px;
-    font-weight: 400;
-}
-
 .filters {
     display: flex;
     gap: 12px;
@@ -52,7 +20,7 @@ h1 {
 }
 
 #nutritionTable {
-    width: 100%;
+    width: 100% !important;
     background: white;
     border-radius: 20px;
     overflow: hidden;
@@ -62,6 +30,7 @@ table.dataTable thead th {
     font-size: 1rem;
     font-weight: 500;
     color: #111111b7;
+    border-bottom: 1px solid rgb(245 245 245);
 }
 
 
@@ -71,6 +40,41 @@ table.dataTable thead th {
 
 
 /* CSS PERSO */
+
+.dt-buttons {
+    display: none;
+}
+
+
+table.dataTable.display tbody td {
+    border-top: none;
+}
+
+table.dataTable.display>tbody>tr.odd>* {
+    box-shadow: none;
+}
+
+
+
+table.dataTable.display>tbody>tr.odd>.sorting_1,
+table.dataTable.display>tbody>tr.even>.sorting_1 {
+    box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.015);
+    border-radius: 0;
+}
+
+table.dataTable.display>tbody>tr.odd:hover>*,
+table.dataTable.display>tbody>tr.even:hover>* {
+    box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.035);
+}
+
+table.dataTable.display td:last-child {
+    border-radius: 0 10px 10px 0;
+}
+
+table.dataTable.display td:first-child {
+    border-radius: 10px 0 0 10px;
+}
+
 #CatalogueTable {
     display: flex;
     flex-direction: column;
@@ -80,8 +84,19 @@ table.dataTable thead th {
     background-color: transparent;
     border-radius: 30px;
     gap: 0;
-    background-color: #ffffff9f;
+    background-color: var(--semi-transparent);
 }
+
+table.dataTable.display tbody td:last-child {
+    text-align: center;
+    cursor: pointer;
+}
+
+table.dataTable.display tbody td:last-child:hover {
+    background-color: rgb(235, 237, 238);
+    border-radius: 0 10px 10px 0;
+}
+
 
 .dataTables_wrapper {
     display: flex;
@@ -122,7 +137,7 @@ table.dataTable.no-footer {
     height: 34px;
     width: fit-content;
     box-sizing: border-box;
-    padding: 5px 10px;
+    padding: 10px;
     gap: 5px;
 }
 
@@ -136,12 +151,13 @@ table.dataTable.no-footer {
 }
 
 #tableSearchBar img {
-    height: 1.5rem;
+    height: 100%;
 }
 
 #tableSearchBar input {
     border: none;
     background: none;
+    font-size: .8rem;
 }
 
 
@@ -193,23 +209,31 @@ table.dataTable.no-footer {
 
 
 
-.btn-1 {
-    background-color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 10px 20px 10px 20px;
-    color: black;
-    font-size: .8rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
 
-.btn-1:hover {
-    background-color: #fdfdfd;
-}
 
-.btn-1 img {
-    height: 1rem;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* MOBILE VERSION ========================== */
+@media (max-width: 768px) {
+    .controls .filters {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+
+    #nutritionTable_wrapper {
+        overflow-x: auto;
+    }
 }
