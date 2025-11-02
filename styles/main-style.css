@@ -9,7 +9,7 @@ body {
     background: #f7f8fb;
     color: #111;
     background: #DFE0DF;
-    background: linear-gradient(134deg, rgb(246 246 246) 0%, rgb(233 239 243) 50%, #275db066 100%);
+    background: linear-gradient(134deg, rgb(246 246 246) 0%, rgb(233 239 243) 50%, #f9f9f9 100%);
     min-height: 100vh;
     box-sizing: border-box;
     margin: 0;
