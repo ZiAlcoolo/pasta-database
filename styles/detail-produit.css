@@ -2,31 +2,34 @@ h1 {
     margin: 2rem 0;
 }
 
-#details{
+#details {
     background: var(--semi-transparent);
-    border-radius:20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-radius: 20px;
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); */
     max-width: 1000px;
     margin: auto;
     padding-bottom: .5rem;
 }
 
-#details .card-header{
+#details .card-header {
     display: flex;
     flex-direction: row;
     padding: 18px;
     gap: 5px;
 }
-#details .card-header .card-infos{
+
+#details .card-header .card-infos {
     display: flex;
     flex-direction: column;
     flex: 1;
 }
-#details h2{
+
+#details h2 {
     margin: 0;
     font-weight: 600;
 }
-#details .sub-title{
+
+#details .sub-title {
     color: #333333b2;
     margin: 0;
     margin-top: .5rem;
@@ -58,6 +61,13 @@ td.key {
 .back {
     margin-bottom: 14px;
     display: inline-block;
+}
+
+.card-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
 }
 
 
@@ -105,11 +115,16 @@ mark {
     border-radius: 3px;
 }
 
-.btn-1#copyToClipboard{
+.btn-1#copyToClipboard {
     border-radius: 20px;
     display: flex;
     height: 34px;
     width: fit-content;
     box-sizing: border-box;
     padding: 10px;
+}
+
+
+#copyToClipboard img {
+    height: 100%;
 }

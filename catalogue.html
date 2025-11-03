@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Catalogue nutritionnel — Aperçu</title>
+    <title>Nutritional Catalogue — Overview</title>
 
     <!-- jQuery + DataTables + Responsive + Buttons -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -24,58 +24,68 @@
     <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
 
-
     <!-- STYLES -->
     <link rel="stylesheet" href="./styles/main-style.css">
     <link rel="stylesheet" href="./styles/catalogue.css">
-
 </head>
 
 <body>
     <div id="header">
-
-        <div class="header_btn" id="header_logo"><img src="./media/icons/temp-logo.png"></div>
+        <div class="header_btn" id="header_logo">
+            <img src="./media/icons/temp-logo.png">
+        </div>
     </div>
 
-    <h1>Catalogue nutritionnel</h1>
-    <p>Découvrez tous les types de pâtes proposées autour du monde et trouvez celles qui correspondent le mieux à vos
-        besoins et attentes parmis une large sélection de choix couramment mise à jour.</p>
+    <h1>International Directory of Ready-to-Use Therapeutic Foods</h1>
+    <p>
+        The RUTF Directory is a comprehensive reference designed to catalogue ready-to-use therapeutic foods (RUTF) used
+        in
+        the prevention and treatment of severe acute malnutrition. It brings together information on product
+        formulations,
+        manufacturers, and nutritional composition. By providing a clear overview of available solutions, this directory
+        aims to support researchers, humanitarian actors, and policymakers in identifying, comparing, and improving RUTF
+        products that save lives around the world.
+    </p>
 
     <div id="CatalogueTable">
         <div class="controls">
-            <div class="filters" aria-label="Filtres">
+            <div class="filters" aria-label="Filters">
                 <label>
                     <select id="continentSelect">
-                        <option value="">Contient</option>
+                        <option value="">Continent</option>
                     </select>
                 </label>
 
                 <label>
                     <select id="countrySelect">
-                        <option value="">Pays</option>
+                        <option value="">Country</option>
                     </select>
                 </label>
 
                 <label>
                     <select id="typeSelect">
-                        <option value="">Type production</option>
+                        <option value="">Production type</option>
                     </select>
                 </label>
 
                 <div id="extraFiltersContainer"></div>
-                <button class="btn-1" id="resetFilters"><img
-                        src="https://img.icons8.com/fluency-systems-filled/1000/clear-filters.png"></button>
+
+                <button class="btn-1" id="resetFilters">
+                    <img src="https://img.icons8.com/fluency-systems-filled/1000/clear-filters.png">
+                </button>
             </div>
+
             <div id="tableSearchBar" class="btn-1">
-                <button onclick="$('#searchInput').animate({width: 'toggle'});"><img
-                        src="https://img.icons8.com/fluency-systems-filled/1000/search.png"></button>
-                <input type="text" id="searchInput" style="display: none;" placeholder="Rechercher...">
+                <button onclick="$('#searchInput').animate({width: 'toggle'});">
+                    <img src="https://img.icons8.com/fluency-systems-filled/1000/search.png">
+                </button>
+                <input type="text" id="searchInput" style="display: none;" placeholder="Search...">
             </div>
 
             <div id="openExportOverlayMenu">
                 <button class="btn-1" onclick="$('#exportOverlayMenu').slideToggle('fast')">Export</button>
                 <div id="exportOverlayMenu" style="display: none;">
-                    <button class="btn-1" id="exportClipboard">Copier</button>
+                    <button class="btn-1" id="exportClipboard">Copy</button>
                     <button class="btn-1" id="exportCSV">CSV</button>
                     <button class="btn-1" id="exportExcel">Excel</button>
                     <button class="btn-1" id="exportPDF">PDF</button>
@@ -86,31 +96,23 @@
         <table id="nutritionTable" class="display nowrap"></table>
     </div>
 
-
-
-
-
-
     <script>
         /******************************************************************
-   * CONFIG
-   ******************************************************************/
+         * CONFIG
+         ******************************************************************/
         const sheetID = "1ziYU_8TEzZey5zwPWsEty3Ufimp8VxFp9uRGjw5ou4k";
         const sheetName = "1";
         const apiURL = `https://opensheet.elk.sh/${sheetID}/${encodeURIComponent(sheetName)}`;
 
         const FIELD = {
-            name: "Nom du Produit",
+            name: "Product name",
             type: "Type of production",
             productionLocation: "Production location",
             cost: "Cost",
             link: "Link"
         };
 
-        const ENABLED_FILTERS = {
-            // "Shelf Life": "Shelf Life",
-            // "Acceptability": "Acceptability"
-        };
+        const ENABLED_FILTERS = {};
 
         const countryToContinent = {
             "France": "Europe", "Germany": "Europe", "Spain": "Europe", "Italy": "Europe", "Belgium": "Europe",
@@ -121,41 +123,42 @@
         };
 
         /******************************************************************
-         * CODE PRINCIPAL
+         * MAIN CODE
          ******************************************************************/
         $(function () {
             $.getJSON(apiURL).done(function (data) {
                 if (!data || data.length === 0) {
-                    $('body').append("<p>Aucune donnée trouvée.</p>");
+                    $('body').append("<p>No data found.</p>");
                     return;
                 }
 
+
+                /**********************
+    * Préparation des filtres
+    **********************/
                 const countriesSet = new Set();
                 const typesSet = new Set();
                 const extraSets = {};
+
 
                 data.forEach(row => {
                     const rawLoc = row[FIELD.productionLocation] || "";
                     let country = rawLoc.includes(",") ? rawLoc.split(",").pop().trim() : rawLoc.trim();
                     if (country) countriesSet.add(country);
-
                     if (row[FIELD.type]) typesSet.add(row[FIELD.type]);
-
                     Object.values(ENABLED_FILTERS).forEach(col => {
                         if (!extraSets[col]) extraSets[col] = new Set();
                         if (row[col]) extraSets[col].add(row[col]);
                     });
                 });
 
-                // continent → countries mapping
                 const continentToCountries = {};
                 countriesSet.forEach(c => {
-                    const cont = countryToContinent[c] || "Autre / Inconnu";
+                    const cont = countryToContinent[c] || "Other / Unknown";
                     if (!continentToCountries[cont]) continentToCountries[cont] = new Set();
                     continentToCountries[cont].add(c);
                 });
 
-                // populate filters
                 const $continent = $('#continentSelect');
                 Object.keys(continentToCountries).sort().forEach(c => $continent.append(`<option value="${c}">${c}</option>`));
 
@@ -165,63 +168,88 @@
                 const $type = $('#typeSelect');
                 Array.from(typesSet).sort().forEach(t => $type.append(`<option value="${t}">${t}</option>`));
 
-                // extra filters
                 const $extra = $('#extraFiltersContainer');
                 Object.entries(ENABLED_FILTERS).forEach(([label, col]) => {
                     const setValues = Array.from(extraSets[col] || []);
                     if (setValues.length === 0) return;
                     const id = 'filter_' + col.replace(/\s+/g, '_');
-                    const $sel = $(`<label>${label} <select id="${id}"><option value="">Tous</option></select></label>`);
+                    const $sel = $(`<label>${label} <select id="${id}"><option value="">All</option></select></label>`);
                     setValues.forEach(v => $sel.find('select').append(`<option value="${v}">${v}</option>`));
                     $extra.append($sel);
                 });
 
-                // columns for table
-                const columns = [
-                    { title: FIELD.name, data: FIELD.name },
-                    { title: FIELD.type, data: FIELD.type },
-                    { title: FIELD.productionLocation, data: FIELD.productionLocation },
-                    { title: FIELD.cost, data: FIELD.cost },
-                    {
-                        title: "",
-                        data: FIELD.link,
-                        render: function (data, type, row) {
-                            if (!data) return '<span style="color:#888;">—</span>';
-                            return `<img height="20" src="https://img.icons8.com/material-rounded/500/visible.png">`;
-                        },
-                        orderable: false,
-                        searchable: false
-                    }
-                ];
 
-                /**************************************************************
-         * 🧩 Initialisation DataTable avec export
-         **************************************************************/
+
+                /**********************
+                     * Préparation des colonnes
+                     **********************/
+                const allKeys = Object.keys(data[0]);
+                const visibleKeys = [
+                    FIELD.name,
+                    FIELD.type,
+                    FIELD.productionLocation,
+                    FIELD.cost,
+                    FIELD.link
+                ];
+                const hiddenKeys = allKeys.filter(k => !visibleKeys.includes(k));
+
+                const columns = allKeys.map(key => {
+                    if (key === FIELD.link) {
+                        return {
+                            title: "",
+                            data: key,
+                            render: function (data) {
+                                return `<img height="20" src="https://img.icons8.com/material-rounded/500/visible.png">`;
+                            },
+                            orderable: false,
+                            searchable: false
+                        };
+                    }
+                    return { title: key, data: key };
+                });
+
+
+
+                /**********************
+    * Initialisation du tableau
+    **********************/
                 const table = $('#nutritionTable').DataTable({
                     data,
                     columns,
                     pageLength: 20,
                     responsive: false,
-                    dom: 'Brt', // B = boutons export, r = processing, t = table
-                    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/fr-FR.json' },
+                    dom: 'Bfrtip',
+                    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/en-GB.json' },
+                    columnDefs: [
+                        { targets: hiddenKeys.map(k => allKeys.indexOf(k)), visible: false, searchable: true }
+                    ],
                     buttons: [
                         {
                             extend: 'copyHtml5',
-                            text: 'Copier',
+                            text: 'Copy',
                             className: 'btn-1',
-                            exportOptions: { columns: ':visible:not(:last-child)' } // exclut "Lien"
+                            exportOptions: {
+                                columns: function (idx, data, node) { return true; }, // exporte toutes les colonnes
+                                rows: ':visible' // mais uniquement les lignes visibles après filtrage
+                            }
                         },
                         {
                             extend: 'csvHtml5',
                             text: 'CSV',
                             className: 'btn-1',
-                            exportOptions: { columns: ':visible:not(:last-child)' }
+                            exportOptions: {
+                                columns: function (idx, data, node) { return true; },
+                                rows: ':visible'
+                            }
                         },
                         {
                             extend: 'excelHtml5',
                             text: 'Excel',
                             className: 'btn-1',
-                            exportOptions: { columns: ':visible:not(:last-child)' }
+                            exportOptions: {
+                                columns: function (idx, data, node) { return true; },
+                                rows: ':visible'
+                            }
                         },
                         {
                             extend: 'pdfHtml5',
@@ -229,7 +257,10 @@
                             className: 'btn-1',
                             orientation: 'landscape',
                             pageSize: 'A4',
-                            exportOptions: { columns: ':visible:not(:last-child)' },
+                            exportOptions: {
+                                columns: function (idx, data, node) { return true; },
+                                rows: ':visible'
+                            },
                             customize: function (doc) {
                                 doc.styles.tableHeader.alignment = 'left';
                                 doc.defaultStyle.fontSize = 9;
@@ -237,45 +268,55 @@
                             }
                         }
                     ]
+
                 });
 
-
-                /**************************************************************
-                * 🧾 Liaison boutons export personnalisés
-                **************************************************************/
+                /**********************
+                 * Boutons d’export
+                 **********************/
                 $('#exportClipboard').on('click', () => table.button('.buttons-copy').trigger());
                 $('#exportCSV').on('click', () => table.button('.buttons-csv').trigger());
                 $('#exportExcel').on('click', () => table.button('.buttons-excel').trigger());
                 $('#exportPDF').on('click', () => table.button('.buttons-pdf').trigger());
 
 
-                // Fonction pour normaliser le texte (supprime les accents et met en minuscule)
-                function normalizeText(text) {
-                    return text
-                        .normalize("NFD")
-                        .replace(/[\u0300-\u036f]/g, "")
-                        .toLowerCase();
-                }
 
-                // Surcharge la fonction de recherche de DataTables pour la rendre accent-insensible
+
+                /**********************
+    * Recherche globale accent-insensitive
+    **********************/
+                function normalizeText(text) {
+                    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                }
                 $.fn.dataTable.ext.type.search.string = function (data) {
-                    return !data
-                        ? ''
-                        : typeof data === 'string'
-                            ? normalizeText(data)
-                            : data;
+                    return !data ? '' : typeof data === 'string' ? normalizeText(data) : data;
                 };
 
-                // Recherche manuelle globale (accent-insensible)
-                $('#tableSearchBar').on('keyup', '#searchInput', function () {
-                    const value = normalizeText($(this).val());
-                    table.search(value).draw();
+
+
+                // Animation ouverture/fermeture du champ
+                $('#toggleSearch').on('click', function (e) {
+                    e.stopPropagation();
+                    $('#searchInput').animate({ width: 'toggle' }, 150).focus();
+                });
+
+                // Ferme le champ si clic en dehors
+                $(document).on('click', function (e) {
+                    if (!$(e.target).closest('#tableSearchBar').length) {
+                        $('#searchInput').hide();
+                    }
+                });
+
+                // Recherche personnalisée dans la DataTable
+                $(document).on('keyup', '#searchInput', function () {
+                    const value = $(this).val().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                    $('#nutritionTable').DataTable().search(value).draw();
                 });
 
 
 
-                // filtres continent / pays / type / extra
-                $.fn.dataTable.ext.search.push(function (settings, _, dataIndex) {
+
+                $.fn.dataTable.ext.search.push(function (_, __, dataIndex) {
                     const row = table.row(dataIndex).data();
                     if (!row) return true;
 
@@ -283,35 +324,24 @@
                     const country = $('#countrySelect').val();
                     const type = $('#typeSelect').val();
 
-                    // country filter
                     if (country && !(row[FIELD.productionLocation] || "").toLowerCase().includes(country.toLowerCase()))
                         return false;
 
-                    // continent filter
                     if (!country && continent) {
                         let ctry = (row[FIELD.productionLocation] || "").split(",").pop().trim();
-                        const cont = countryToContinent[ctry] || "Autre / Inconnu";
+                        const cont = countryToContinent[ctry] || "Other / Unknown";
                         if (cont !== continent) return false;
                     }
 
-                    // type
                     if (type && (row[FIELD.type] || "").toLowerCase() !== type.toLowerCase())
                         return false;
-
-                    // extra
-                    for (const [_, col] of Object.entries(ENABLED_FILTERS)) {
-                        const val = $('#filter_' + col.replace(/\s+/g, '_')).val();
-                        if (val && !(row[col] || "").toLowerCase().includes(val.toLowerCase()))
-                            return false;
-                    }
 
                     return true;
                 });
 
-                // événements
                 $('#continentSelect').on('change', function () {
                     const cont = $(this).val();
-                    $country.find('option').remove().append('<option value="">Tous</option>');
+                    $country.find('option').remove().append('<option value="">All</option>');
                     if (!cont)
                         Array.from(countriesSet).sort().forEach(c => $country.append(`<option value="${c}">${c}</option>`));
                     else
@@ -321,7 +351,6 @@
 
                 $('#countrySelect, #typeSelect, #extraFiltersContainer select').on('change', () => table.draw());
 
-                // Fonction qui ajuste la largeur du select selon l'option choisie
                 function adjustSelectWidth(select) {
                     const tmp = document.createElement("span");
                     tmp.style.visibility = "hidden";
@@ -329,28 +358,23 @@
                     tmp.style.font = window.getComputedStyle(select).font;
                     tmp.textContent = select.options[select.selectedIndex].text;
                     document.body.appendChild(tmp);
-                    select.style.width = tmp.offsetWidth + 55 + "px"; // marge pour la flèche
+                    select.style.width = tmp.offsetWidth + 55 + "px";
                     tmp.remove();
                 }
 
-                // Ajustement initial + au changement de valeur
                 document.querySelectorAll('.filters select').forEach(select => {
                     adjustSelectWidth(select);
                     select.addEventListener('change', () => adjustSelectWidth(select));
                 });
-
 
                 $('#resetFilters').on('click', () => {
                     $('#continentSelect, #countrySelect, #typeSelect').val('');
                     $('#extraFiltersContainer select').val('');
                     table.search('').draw();
                     $('#searchInput').val('');
-                    document.querySelectorAll('.filters select').forEach(select => {
-                        adjustSelectWidth(select);
-                    });
+                    document.querySelectorAll('.filters select').forEach(select => adjustSelectWidth(select));
                 });
 
-                // clic sur une icône de lien → page détail
                 $('#nutritionTable tbody').on('click', 'td:last-child', function () {
                     const tr = $(this).closest('tr');
                     const row = table.row(tr).data();
@@ -360,10 +384,8 @@
                         window.location.href = `detail.html?product=${productName}`;
                     }
                 });
-
             });
         });
-
     </script>
 </body>
 

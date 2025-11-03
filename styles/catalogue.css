@@ -22,7 +22,7 @@
 #nutritionTable {
     width: 100% !important;
     background: white;
-    border-radius: 20px;
+    /* border-radius: 20px; */
     overflow: hidden;
 }
 
@@ -34,16 +34,23 @@ table.dataTable thead th {
 }
 
 
+/* DATABASE TEMPLATE */
+.dt-buttons,#nutritionTable_filter, #nutritionTable_paginate  {
+    display: none;
+}
+#nutritionTable_info{
+    font-size: .8rem;
+    color: rgb(161, 161, 161);
+    font-weight: 400;
+    text-align: center;
+    margin: 0;
+}
 
 
 
 
 
 /* CSS PERSO */
-
-.dt-buttons {
-    display: none;
-}
 
 
 table.dataTable.display tbody td {
@@ -100,6 +107,7 @@ table.dataTable.display tbody td:last-child:hover {
 
 .dataTables_wrapper {
     display: flex;
+    flex-direction: column;
     align-items: stretch;
     background-color: white;
     padding: 1rem;
