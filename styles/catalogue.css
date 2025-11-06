@@ -10,6 +10,22 @@
     padding: 6px 8px;
 }
 
+.filters label.active select {
+    background-color: transparent;
+    color: white;
+}
+
+.filters label.active select:focus {
+    background-color: rgba(255, 255, 255, 0.5);
+    color: rgb(62, 62, 62);
+}
+
+.filters label.active {
+    background: radial-gradient(circle, #6788f7 0%, #2e5af6 35%, #6489f7 100%);
+    border-radius: 40px;
+    background-size: 200%;
+}
+
 .controls {
     margin-bottom: 10px;
     display: flex;
@@ -35,10 +51,13 @@ table.dataTable thead th {
 
 
 /* DATABASE TEMPLATE */
-.dt-buttons,#nutritionTable_filter, #nutritionTable_paginate  {
+.dt-buttons,
+#nutritionTable_filter,
+#nutritionTable_paginate {
     display: none;
 }
-#nutritionTable_info{
+
+#nutritionTable_info {
     font-size: .8rem;
     color: rgb(161, 161, 161);
     font-weight: 400;
@@ -62,6 +81,11 @@ table.dataTable.display>tbody>tr.odd>* {
 }
 
 
+table.dataTable thead>tr>th.sorting_asc:before,
+table.dataTable thead>tr>th.sorting_desc:after {
+    color: var(--primary-c);
+}
+
 
 table.dataTable.display>tbody>tr.odd>.sorting_1,
 table.dataTable.display>tbody>tr.even>.sorting_1 {
@@ -73,6 +97,7 @@ table.dataTable.display>tbody>tr.odd:hover>*,
 table.dataTable.display>tbody>tr.even:hover>* {
     box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.035);
 }
+
 
 table.dataTable.display td:last-child {
     border-radius: 0 10px 10px 0;

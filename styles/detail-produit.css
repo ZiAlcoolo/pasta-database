@@ -9,6 +9,7 @@ h1 {
     max-width: 1000px;
     margin: auto;
     padding-bottom: .5rem;
+    overflow: auto;
 }
 
 #details .card-header {

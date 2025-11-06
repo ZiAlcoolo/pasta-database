@@ -38,13 +38,12 @@
 
     <h1>International Directory of Ready-to-Use Therapeutic Foods</h1>
     <p>
-        The RUTF Directory is a comprehensive reference designed to catalogue ready-to-use therapeutic foods (RUTF) used
-        in
-        the prevention and treatment of severe acute malnutrition. It brings together information on product
-        formulations,
-        manufacturers, and nutritional composition. By providing a clear overview of available solutions, this directory
-        aims to support researchers, humanitarian actors, and policymakers in identifying, comparing, and improving RUTF
-        products that save lives around the world.
+        The RUTF Directory is a prototype reference tool currently under development, designed to catalogue ready-to-use
+        therapeutic foods (RUTF) used in the prevention and treatment of severe acute malnutrition. At this stage, the
+        directory is still in a testing phase, and the products displayed are mock examples used for demonstration
+        purposes only. The content is not exhaustive and does not represent real products or manufacturers. The aim is
+        to build a platform that will eventually support researchers, humanitarian actors, and policymakers in
+        identifying, comparing, and improving RUTF products that save lives around the world.
     </p>
 
     <div id="CatalogueTable">
@@ -302,8 +301,11 @@
 
                 // Ferme le champ si clic en dehors
                 $(document).on('click', function (e) {
-                    if (!$(e.target).closest('#tableSearchBar').length) {
+                    if (!$(e.target).closest('#tableSearchBar').length && $('#searchInput').val() == "") {
                         $('#searchInput').hide();
+                    }
+                    if (!$(e.target).closest('#openExportOverlayMenu').length) {
+                        $('#exportOverlayMenu').hide();
                     }
                 });
 
@@ -364,7 +366,17 @@
 
                 document.querySelectorAll('.filters select').forEach(select => {
                     adjustSelectWidth(select);
-                    select.addEventListener('change', () => adjustSelectWidth(select));
+                    select.addEventListener('change', () => {
+                        adjustSelectWidth(select);
+
+                        const wrapper = select.closest('label');
+                        if (select.value !== "") {
+                            wrapper.classList.add('active');
+                        } else {
+                            wrapper.classList.remove('active');
+                        }
+
+                    });
                 });
 
                 $('#resetFilters').on('click', () => {
@@ -372,7 +384,13 @@
                     $('#extraFiltersContainer select').val('');
                     table.search('').draw();
                     $('#searchInput').val('');
-                    document.querySelectorAll('.filters select').forEach(select => adjustSelectWidth(select));
+                    document.querySelectorAll('.filters select').forEach(select => {
+                        adjustSelectWidth(select);
+                        const wrapper = select.closest('label');
+                        wrapper.classList.remove('active');
+                    }
+
+                    );
                 });
 
                 $('#nutritionTable tbody').on('click', 'td:last-child', function () {
