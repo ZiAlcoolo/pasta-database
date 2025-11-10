@@ -36,8 +36,12 @@ body {
     padding: 5px;
     border-radius: 7px;
     background-color: var(--semi-transparent);
-    height: 1.5rem;
-    width: 1.5rem;
+    height: 2rem;
+    width: 2rem;
+}
+
+#header .header_btn#header_logo {
+    width: fit-content;
 }
 
 #header .header_btn#back-btn:hover {
