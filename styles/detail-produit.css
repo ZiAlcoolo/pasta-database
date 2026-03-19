@@ -47,6 +47,7 @@ td {
     padding: 8px 18px;
     vertical-align: top;
     border-bottom: 1px solid #ffffff;
+    white-space: break-spaces;
 }
 
 td.key {
