@@ -11,7 +11,7 @@
     <meta name="description"
         content="Prototype directory cataloguing ready-to-use therapeutic foods (RUTF) for severe acute malnutrition. A testing platform to support research, humanitarian action, and policy development.">
 
-    <!-- Open Graph (Facebook, LinkedIn, etc.) -->
+    <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="International Directory of Ready-to-Use Therapeutic Foods">
     <meta property="og:description"
@@ -26,13 +26,8 @@
         content="Prototype directory of ready-to-use therapeutic foods (RUTF) to support researchers, humanitarian actors, and policymakers.">
     <meta name="twitter:image" content="https://l-salvaterra.netlify.app/media/icons/temp-logo.png">
 
-    <!-- Optional -->
     <meta name="robots" content="index, follow">
     <meta name="author" content="Your Organization Name">
-
-
-
-
 
     <!-- jQuery + DataTables + Responsive + Buttons -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -43,7 +38,6 @@
 
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
-
     <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
@@ -51,9 +45,179 @@
     <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
 
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+
     <!-- STYLES -->
     <link rel="stylesheet" href="./styles/main-style.css">
     <link rel="stylesheet" href="./styles/catalogue.css">
+
+    <style>
+        /* ── MAP PANEL ─────────────────────────────────────────── */
+        #mapPanel {
+            background: white;
+            border-radius: 30px;
+            overflow: hidden;
+            margin-bottom: 0;
+            transition: max-height 0.35s ease, opacity 0.25s ease;
+            max-height: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #mapPanel.open {
+            max-height: 420px;
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #mapPanelInner {
+            padding: 1rem 1rem 0.5rem;
+        }
+
+        #mapPanelHeader {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        #mapPanelHeader .map-title {
+            font-size: .85rem;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #mapPanelHeader .map-title .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary-c);
+            flex-shrink: 0;
+        }
+
+        #mapLegend {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #mapLegend span {
+            font-size: .72rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #mapLegend .swatch {
+            display: inline-block;
+            width: 11px;
+            height: 11px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        #leafletMap {
+            width: 100%;
+            height: 300px;
+            border-radius: 20px;
+            background: #eef3f8;
+        }
+
+        #mapActiveTags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            padding: 10px 0 6px;
+            min-height: 32px;
+        }
+
+        #mapActiveTags .tag-label {
+            font-size: .72rem;
+            color: #999;
+        }
+
+        .map-tag {
+            font-size: .75rem;
+            background: #dae9fb;
+            color: #0c447c;
+            padding: 3px 10px 3px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .map-tag:hover {
+            background: #b5d4f4;
+        }
+
+        .map-tag .x {
+            font-size: .9rem;
+            opacity: .6;
+            line-height: 1;
+        }
+
+        /* Toggle map button */
+        #toggleMapBtn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .8rem;
+        }
+
+        #toggleMapBtn .map-count-badge {
+            background: var(--primary-c);
+            color: white;
+            border-radius: 20px;
+            font-size: .7rem;
+            padding: 1px 7px;
+            display: none;
+        }
+
+        #toggleMapBtn .map-count-badge.visible {
+            display: inline-block;
+        }
+
+        #toggleMapBtn img {
+            height: 1rem;
+            transition: transform .3s;
+        }
+
+        #toggleMapBtn.active img {
+            transform: rotate(180deg);
+        }
+
+        /* Leaflet popup override */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            font-size: .8rem;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .12);
+        }
+
+        .leaflet-popup-tip-container {
+            display: none;
+        }
+
+        /* gap between map panel and catalogue */
+        #mapPanelWrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -73,9 +237,40 @@
         identifying, comparing, and improving RUTF products that save lives around the world.
     </p>
 
+    <!-- MAP PANEL (outside CatalogueTable so it doesn't interfere with rounded corners) -->
+    <div id="mapPanelWrapper">
+        <div id="mapPanel">
+            <div id="mapPanelInner">
+                <div id="mapPanelHeader">
+                    <div class="map-title">
+                        <span class="dot"></span>
+                        Filter by map — click on a country to apply filter
+                    </div>
+                    <div id="mapLegend">
+                        <span><span class="swatch" style="background:#005fb6;"></span>In catalogue</span>
+                        <span><span class="swatch" style="background:#b5d4f4;"></span>Selected</span>
+                        <span><span class="swatch" style="background:#d8d8d8;"></span>Not in catalogue</span>
+                    </div>
+                </div>
+                <div id="leafletMap"></div>
+                <div id="mapActiveTags">
+                    <span class="tag-label">No country selected</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="CatalogueTable">
         <div class="controls">
             <div class="filters" aria-label="Filters">
+
+                <!-- Toggle map button -->
+                <button class="btn-1" id="toggleMapBtn" title="Open/close map filter">
+                    <img src="https://img.icons8.com/fluency-systems-filled/1000/globe--v1.png">
+                    Map
+                    <span class="map-count-badge" id="mapCountBadge">0</span>
+                </button>
+
                 <label>
                     <select id="continentSelect">
                         <option value="">Continent</option>
@@ -149,6 +344,246 @@
         };
 
         /******************************************************************
+         * MAP — state & helpers
+         ******************************************************************/
+        // Countries selected via the map (Set of country name strings)
+        const mapSelectedCountries = new Set();
+
+        // Mapping GeoJSON country names → your catalogue country names
+        // GeoJSON uses slightly different names; extend this list as needed
+        const geoNameToMine = {
+            "United States of America": "United States",
+            "Republic of Korea": "South Korea",
+            "Dem. Rep. Congo": "DR Congo",
+            "United Kingdom": "United Kingdom",
+        };
+
+        // Countries present in catalogue (filled after data load)
+        let catalogueCountriesSet = new Set();
+
+        // Leaflet layer references keyed by catalogue country name
+        const countryLayers = {};
+
+        let leafletMap = null;
+        let geojsonLayer = null;
+
+        function getCatalogueNameForGeo(geoName) {
+            return geoNameToMine[geoName] || geoName;
+        }
+
+        function getCountryStyle(catalogueName, isSelected) {
+            if (isSelected) {
+                return { fillColor: "#b5d4f4", fillOpacity: 0.9, color: "#005fb6", weight: 1.5 };
+            }
+            if (catalogueCountriesSet.has(catalogueName)) {
+                return { fillColor: "#005fb6", fillOpacity: 0.75, color: "#003d80", weight: 1 };
+            }
+            return { fillColor: "#d8d8d8", fillOpacity: 0.4, color: "#bbb", weight: 0.5 };
+        }
+
+        function initLeafletMap() {
+            leafletMap = L.map('leafletMap', {
+                zoomControl: true,
+                attributionControl: false,
+                scrollWheelZoom: false,
+                minZoom: 1,
+                maxZoom: 6,
+                worldCopyJump: false
+            }).setView([20, 10], 2);
+
+            // CartoDB light tiles — no API key needed
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+                subdomains: 'abcd',
+                maxZoom: 10
+            }).addTo(leafletMap);
+
+            // Load GeoJSON countries (Natural Earth, public domain via jsdelivr)
+            fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+                .then(r => r.json())
+                .then(world => {
+                    // world-atlas uses TopoJSON — convert with topojson-client if available,
+                    // otherwise use the pre-converted GeoJSON from a separate source
+                    loadCountriesGeoJSON();
+                })
+                .catch(() => loadCountriesGeoJSON());
+        }
+
+        function loadCountriesGeoJSON() {
+            fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+                .then(r => r.json())
+                .then(geojson => renderGeoJSON(geojson))
+                .catch(err => console.warn('Could not load GeoJSON:', err));
+        }
+
+        function renderGeoJSON(geojson) {
+            geojsonLayer = L.geoJSON(geojson, {
+                style: function (feature) {
+                    const geoName = feature.properties.ADMIN || feature.properties.name || "";
+                    const catName = getCatalogueNameForGeo(geoName);
+                    return getCountryStyle(catName, mapSelectedCountries.has(catName));
+                },
+                onEachFeature: function (feature, layer) {
+                    const geoName = feature.properties.ADMIN || feature.properties.name || "";
+                    const catName = getCatalogueNameForGeo(geoName);
+
+                    if (!catalogueCountriesSet.has(catName)) {
+                        layer.on('mouseover', function () {
+                            layer.setStyle({ fillOpacity: 0.55 });
+                        });
+                        layer.on('mouseout', function () {
+                            layer.setStyle(getCountryStyle(catName, false));
+                        });
+                        return; // non-catalogue countries: hover only, no click
+                    }
+
+                    // Store reference
+                    countryLayers[catName] = layer;
+
+                    layer.on('mouseover', function () {
+                        if (!mapSelectedCountries.has(catName)) {
+                            layer.setStyle({ fillColor: "#56acfc", fillOpacity: 0.7, color: "#005fb6", weight: 1.5 });
+                        }
+                        layer.bindTooltip(catName, { sticky: true, className: 'leaflet-tooltip-country' }).openTooltip();
+                    });
+
+                    layer.on('mouseout', function () {
+                        layer.setStyle(getCountryStyle(catName, mapSelectedCountries.has(catName)));
+                        layer.closeTooltip();
+                    });
+
+                    layer.on('click', function () {
+                        if (mapSelectedCountries.has(catName)) {
+                            mapSelectedCountries.delete(catName);
+                        } else {
+                            mapSelectedCountries.add(catName);
+                        }
+                        layer.setStyle(getCountryStyle(catName, mapSelectedCountries.has(catName)));
+                        syncMapFilterToTable();
+                        renderMapTags();
+                        updateMapBadge();
+                    });
+                }
+            }).addTo(leafletMap);
+        }
+
+        function adjustSelectWidth(select) {
+            const tmp = document.createElement("span");
+            tmp.style.visibility = "hidden";
+            tmp.style.whiteSpace = "nowrap";
+            tmp.style.font = window.getComputedStyle(select).font;
+            tmp.textContent = select.options[select.selectedIndex].text;
+            document.body.appendChild(tmp);
+            select.style.width = tmp.offsetWidth + 55 + "px";
+            tmp.remove();
+        }
+
+        function syncMapFilterToTable() {
+            if (mapSelectedCountries.size === 1) {
+                const only = Array.from(mapSelectedCountries)[0];
+                if ($('#countrySelect option[value="' + only + '"]').length) {
+                    $('#countrySelect').val(only);
+                    adjustSelectWidth(document.getElementById('countrySelect'));
+                    $('#countrySelect').closest('label').addClass('active');
+                }
+            } else {
+                // Multi-sélection carte : le select repasse à vide
+                $('#countrySelect').val('');
+                adjustSelectWidth(document.getElementById('countrySelect'));
+                $('#countrySelect').closest('label').removeClass('active');
+            }
+            if (window._dtTable) window._dtTable.draw();
+        }
+
+
+        function renderMapTags() {
+            const $tags = $('#mapActiveTags');
+            $tags.empty();
+
+            if (mapSelectedCountries.size === 0) {
+                $tags.append('<span class="tag-label">No country selected</span>');
+                return;
+            }
+
+            $tags.append('<span class="tag-label">Active:</span>');
+            mapSelectedCountries.forEach(c => {
+                const $tag = $(`<span class="map-tag">${c} <span class="x">×</span></span>`);
+                $tag.on('click', function () {
+                    mapSelectedCountries.delete(c);
+                    // Update layer style
+                    if (countryLayers[c]) {
+                        countryLayers[c].setStyle(getCountryStyle(c, false));
+                    }
+                    syncMapFilterToTable();
+                    renderMapTags();
+                    updateMapBadge();
+                });
+                $tags.append($tag);
+            });
+        }
+
+        function updateMapBadge() {
+            const n = mapSelectedCountries.size;
+            const $badge = $('#mapCountBadge');
+            if (n > 0) {
+                $badge.text(n).addClass('visible');
+                $('#toggleMapBtn').addClass('active');
+            } else {
+                $badge.removeClass('visible');
+                if (!$('#mapPanel').hasClass('open')) {
+                    $('#toggleMapBtn').removeClass('active');
+                }
+            }
+        }
+
+        function clearMapSelection() {
+            mapSelectedCountries.forEach(c => {
+                if (countryLayers[c]) {
+                    countryLayers[c].setStyle(getCountryStyle(c, false));
+                }
+            });
+            mapSelectedCountries.clear();
+            renderMapTags();
+            updateMapBadge();
+            if (window._dtTable) window._dtTable.draw();
+        }
+
+        function syncSelectToMap() {
+            const selectedCountry = $('#countrySelect').val();
+            if (!selectedCountry) return;
+            mapSelectedCountries.add(selectedCountry);
+            // Mettre à jour le style de la couche si elle est déjà chargée
+            if (countryLayers[selectedCountry]) {
+                countryLayers[selectedCountry].setStyle(getCountryStyle(selectedCountry, true));
+            }
+            renderMapTags();
+            updateMapBadge();
+        }
+
+        /******************************************************************
+         * Toggle map panel
+         ******************************************************************/
+        $('#toggleMapBtn').on('click', function () {
+            const $panel = $('#mapPanel');
+            const isOpen = $panel.hasClass('open');
+            $panel.toggleClass('open');
+            $(this).toggleClass('active', !isOpen || mapSelectedCountries.size > 0);
+
+            // Init map on first open (avoids rendering issues)
+            if (!isOpen && !leafletMap) {
+                setTimeout(() => {
+                    initLeafletMap();
+                    syncSelectToMap();
+                }, 50);
+            }
+            if (!isOpen && leafletMap) {
+                setTimeout(() => {
+                    leafletMap.invalidateSize();
+                    syncSelectToMap();
+                }, 350);
+            }
+        });
+
+        /******************************************************************
          * MAIN CODE
          ******************************************************************/
         $(function () {
@@ -158,14 +593,12 @@
                     return;
                 }
 
-
                 /**********************
-    * Préparation des filtres
-    **********************/
+                 * Préparation des filtres
+                 **********************/
                 const countriesSet = new Set();
                 const typesSet = new Set();
                 const extraSets = {};
-
 
                 data.forEach(row => {
                     const rawLoc = row[FIELD.productionLocation] || "";
@@ -177,6 +610,9 @@
                         if (row[col]) extraSets[col].add(row[col]);
                     });
                 });
+
+                // Populate map catalogue set
+                catalogueCountriesSet = new Set(countriesSet);
 
                 const continentToCountries = {};
                 countriesSet.forEach(c => {
@@ -204,19 +640,11 @@
                     $extra.append($sel);
                 });
 
-
-
                 /**********************
-                     * Préparation des colonnes
-                     **********************/
+                 * Colonnes
+                 **********************/
                 const allKeys = Object.keys(data[0]);
-                const visibleKeys = [
-                    FIELD.name,
-                    FIELD.type,
-                    FIELD.productionLocation,
-                    FIELD.cost,
-                    FIELD.link
-                ];
+                const visibleKeys = [FIELD.name, FIELD.type, FIELD.productionLocation, FIELD.cost, FIELD.link];
                 const hiddenKeys = allKeys.filter(k => !visibleKeys.includes(k));
 
                 const columns = allKeys.map(key => {
@@ -224,7 +652,7 @@
                         return {
                             title: "",
                             data: key,
-                            render: function (data) {
+                            render: function () {
                                 return `<img height="20" src="https://img.icons8.com/material-rounded/500/visible.png">`;
                             },
                             orderable: false,
@@ -234,11 +662,9 @@
                     return { title: key, data: key };
                 });
 
-
-
                 /**********************
-    * Initialisation du tableau
-    **********************/
+                 * DataTable init
+                 **********************/
                 const table = $('#nutritionTable').DataTable({
                     data,
                     columns,
@@ -251,42 +677,21 @@
                     ],
                     buttons: [
                         {
-                            extend: 'copyHtml5',
-                            text: 'Copy',
-                            className: 'btn-1',
-                            exportOptions: {
-                                columns: function (idx, data, node) { return true; }, // exporte toutes les colonnes
-                                rows: ':visible' // mais uniquement les lignes visibles après filtrage
-                            }
+                            extend: 'copyHtml5', text: 'Copy', className: 'btn-1',
+                            exportOptions: { columns: () => true, rows: ':visible' }
                         },
                         {
-                            extend: 'csvHtml5',
-                            text: 'CSV',
-                            className: 'btn-1',
-                            exportOptions: {
-                                columns: function (idx, data, node) { return true; },
-                                rows: ':visible'
-                            }
+                            extend: 'csvHtml5', text: 'CSV', className: 'btn-1',
+                            exportOptions: { columns: () => true, rows: ':visible' }
                         },
                         {
-                            extend: 'excelHtml5',
-                            text: 'Excel',
-                            className: 'btn-1',
-                            exportOptions: {
-                                columns: function (idx, data, node) { return true; },
-                                rows: ':visible'
-                            }
+                            extend: 'excelHtml5', text: 'Excel', className: 'btn-1',
+                            exportOptions: { columns: () => true, rows: ':visible' }
                         },
                         {
-                            extend: 'pdfHtml5',
-                            text: 'PDF',
-                            className: 'btn-1',
-                            orientation: 'landscape',
-                            pageSize: 'A4',
-                            exportOptions: {
-                                columns: function (idx, data, node) { return true; },
-                                rows: ':visible'
-                            },
+                            extend: 'pdfHtml5', text: 'PDF', className: 'btn-1',
+                            orientation: 'landscape', pageSize: 'A4',
+                            exportOptions: { columns: () => true, rows: ':visible' },
                             customize: function (doc) {
                                 doc.styles.tableHeader.alignment = 'left';
                                 doc.defaultStyle.fontSize = 9;
@@ -294,23 +699,22 @@
                             }
                         }
                     ]
-
                 });
 
+                // Expose table globally for map sync
+                window._dtTable = table;
+
                 /**********************
-                 * Boutons d’export
+                 * Export buttons
                  **********************/
                 $('#exportClipboard').on('click', () => table.button('.buttons-copy').trigger());
                 $('#exportCSV').on('click', () => table.button('.buttons-csv').trigger());
                 $('#exportExcel').on('click', () => table.button('.buttons-excel').trigger());
                 $('#exportPDF').on('click', () => table.button('.buttons-pdf').trigger());
 
-
-
-
                 /**********************
-    * Recherche globale accent-insensitive
-    **********************/
+                 * Accent-insensitive search
+                 **********************/
                 function normalizeText(text) {
                     return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
                 }
@@ -318,15 +722,11 @@
                     return !data ? '' : typeof data === 'string' ? normalizeText(data) : data;
                 };
 
-
-
-                // Animation ouverture/fermeture du champ
                 $('#toggleSearch').on('click', function (e) {
                     e.stopPropagation();
                     $('#searchInput').animate({ width: 'toggle' }, 150).focus();
                 });
 
-                // Ferme le champ si clic en dehors
                 $(document).on('click', function (e) {
                     if (!$(e.target).closest('#tableSearchBar').length && $('#searchInput').val() == "") {
                         $('#searchInput').hide();
@@ -336,15 +736,14 @@
                     }
                 });
 
-                // Recherche personnalisée dans la DataTable
                 $(document).on('keyup', '#searchInput', function () {
                     const value = $(this).val().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-                    $('#nutritionTable').DataTable().search(value).draw();
+                    table.search(value).draw();
                 });
 
-
-
-
+                /**********************
+                 * Custom filter (selects + MAP)
+                 **********************/
                 $.fn.dataTable.ext.search.push(function (_, __, dataIndex) {
                     const row = table.row(dataIndex).data();
                     if (!row) return true;
@@ -353,13 +752,22 @@
                     const country = $('#countrySelect').val();
                     const type = $('#typeSelect').val();
 
-                    if (country && !(row[FIELD.productionLocation] || "").toLowerCase().includes(country.toLowerCase()))
-                        return false;
+                    const rowLoc = row[FIELD.productionLocation] || "";
+                    const rowCountry = rowLoc.includes(",") ? rowLoc.split(",").pop().trim() : rowLoc.trim();
 
-                    if (!country && continent) {
-                        let ctry = (row[FIELD.productionLocation] || "").split(",").pop().trim();
-                        const cont = countryToContinent[ctry] || "Other / Unknown";
-                        if (cont !== continent) return false;
+                    // MAP filter — takes priority if selections exist
+                    if (mapSelectedCountries.size > 0) {
+                        if (!mapSelectedCountries.has(rowCountry)) return false;
+                    } else {
+                        // Dropdown country filter
+                        if (country && !rowLoc.toLowerCase().includes(country.toLowerCase()))
+                            return false;
+
+                        // Continent filter (only when no country selected)
+                        if (!country && continent) {
+                            const cont = countryToContinent[rowCountry] || "Other / Unknown";
+                            if (cont !== continent) return false;
+                        }
                     }
 
                     if (type && (row[FIELD.type] || "").toLowerCase() !== type.toLowerCase())
@@ -368,9 +776,12 @@
                     return true;
                 });
 
+                /**********************
+                 * Dropdown filter events
+                 **********************/
                 $('#continentSelect').on('change', function () {
                     const cont = $(this).val();
-                    $country.find('option').remove().append('<option value="">All</option>');
+                    $country.find('option').remove().append('<option value="">Country</option>');
                     if (!cont)
                         Array.from(countriesSet).sort().forEach(c => $country.append(`<option value="${c}">${c}</option>`));
                     else
@@ -378,55 +789,60 @@
                     table.draw();
                 });
 
-                $('#countrySelect, #typeSelect, #extraFiltersContainer select').on('change', () => table.draw());
+                $('#typeSelect, #extraFiltersContainer select').on('change', () => table.draw());
 
-                function adjustSelectWidth(select) {
-                    const tmp = document.createElement("span");
-                    tmp.style.visibility = "hidden";
-                    tmp.style.whiteSpace = "nowrap";
-                    tmp.style.font = window.getComputedStyle(select).font;
-                    tmp.textContent = select.options[select.selectedIndex].text;
-                    document.body.appendChild(tmp);
-                    select.style.width = tmp.offsetWidth + 55 + "px";
-                    tmp.remove();
-                }
+                $('#countrySelect').on('change', function () {
+                    const val = $(this).val();
+                    // Vider la sélection carte et la remplacer par la valeur du select
+                    clearMapSelection();
+                    if (val) {
+                        mapSelectedCountries.add(val);
+                        if (countryLayers[val]) {
+                            countryLayers[val].setStyle(getCountryStyle(val, true));
+                        }
+                        renderMapTags();
+                        updateMapBadge();
+                    }
+                    table.draw();
+                });
+
 
                 document.querySelectorAll('.filters select').forEach(select => {
                     adjustSelectWidth(select);
                     select.addEventListener('change', () => {
                         adjustSelectWidth(select);
-
                         const wrapper = select.closest('label');
-                        if (select.value !== "") {
-                            wrapper.classList.add('active');
-                        } else {
-                            wrapper.classList.remove('active');
-                        }
-
+                        wrapper.classList.toggle('active', select.value !== "");
                     });
                 });
 
                 $('#resetFilters').on('click', () => {
+                    // Reset valeurs
                     $('#continentSelect, #countrySelect, #typeSelect').val('');
                     $('#extraFiltersContainer select').val('');
                     table.search('').draw();
-                    $('#searchInput').val('');
-                    document.querySelectorAll('.filters select').forEach(select => {
+                    $('#searchInput').val('').hide();
+
+                    // Reset largeur + classe active sur TOUS les selects des filtres
+                    document.querySelectorAll('.filters select, #extraFiltersContainer select').forEach(select => {
+                        select.value = '';
                         adjustSelectWidth(select);
                         const wrapper = select.closest('label');
-                        wrapper.classList.remove('active');
-                    }
+                        if (wrapper) wrapper.classList.remove('active');
+                    });
 
-                    );
+                    // Reset carte
+                    clearMapSelection();
                 });
 
+                /**********************
+                 * Row click → detail
+                 **********************/
                 $('#nutritionTable tbody').on('click', 'td:last-child', function () {
                     const tr = $(this).closest('tr');
                     const row = table.row(tr).data();
-
                     if (row && row[FIELD.name]) {
-                        const productName = encodeURIComponent(row[FIELD.name]);
-                        window.location.href = `detail.html?product=${productName}`;
+                        window.location.href = `detail.html?product=${encodeURIComponent(row[FIELD.name])}`;
                     }
                 });
             });
