@@ -29,7 +29,7 @@
     <meta name="robots" content="index, follow">
     <meta name="author" content="Your Organization Name">
 
-    <!-- jQuery + DataTables + Responsive + Buttons -->
+    <!-- jQuery + DataTables + Buttons -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
@@ -59,7 +59,6 @@
             background: white;
             border-radius: 30px;
             overflow: hidden;
-            margin-bottom: 0;
             transition: max-height 0.35s ease, opacity 0.25s ease;
             max-height: 0;
             opacity: 0;
@@ -67,7 +66,7 @@
         }
 
         #mapPanel.open {
-            max-height: 420px;
+            max-height: 440px;
             opacity: 1;
             pointer-events: all;
         }
@@ -159,9 +158,7 @@
             transition: background .15s;
         }
 
-        .map-tag:hover {
-            background: #b5d4f4;
-        }
+        .map-tag:hover { background: #b5d4f4; }
 
         .map-tag .x {
             font-size: .9rem;
@@ -169,7 +166,13 @@
             line-height: 1;
         }
 
-        /* Toggle map button */
+        #mapPanelWrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
         #toggleMapBtn {
             display: flex;
             align-items: center;
@@ -186,36 +189,96 @@
             display: none;
         }
 
-        #toggleMapBtn .map-count-badge.visible {
-            display: inline-block;
-        }
+        #toggleMapBtn .map-count-badge.visible { display: inline-block; }
+        #toggleMapBtn img { height: 1rem; }
 
-        #toggleMapBtn img {
-            height: 1rem;
-            transition: transform .3s;
-        }
-
-        #toggleMapBtn.active img {
-            transform: rotate(180deg);
-        }
-
-        /* Leaflet popup override */
         .leaflet-popup-content-wrapper {
             border-radius: 12px;
             font-size: .8rem;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, .12);
+            box-shadow: 0 4px 14px rgba(0,0,0,.12);
         }
+        .leaflet-popup-tip-container { display: none; }
 
-        .leaflet-popup-tip-container {
-            display: none;
-        }
+        /* ── CUSTOM MULTI-SELECT FILTERS ────────────────────────── */
+        .custom-filter { position: relative; }
 
-        /* gap between map panel and catalogue */
-        #mapPanelWrapper {
+        .filter-btn {
+            background: white;
+            border: none;
+            border-radius: 50px;
+            padding: 7px 14px 7px 16px;
+            font-size: .8rem;
+            cursor: pointer;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            color: black;
+            height: 34px;
+            box-sizing: border-box;
+        }
+
+        .filter-btn .filter-arrow {
+            height: .75rem;
+            opacity: .5;
+            transition: transform .2s;
+        }
+
+        .custom-filter.open .filter-arrow { transform: rotate(180deg); }
+
+        .custom-filter.active .filter-btn {
+            background: radial-gradient(circle, #6788f7 0%, #2e5af6 35%, #6489f7 100%);
+            color: white;
+        }
+
+        .custom-filter.active .filter-btn .filter-arrow {
+            filter: brightness(10);
+            opacity: .8;
+        }
+
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.12);
+            padding: 8px;
+            z-index: 200;
+            min-width: 180px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .custom-filter.open .filter-dropdown { display: block; }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
             gap: 10px;
-            margin-bottom: 10px;
+            padding: 7px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: .82rem;
+            color: #222;
+            transition: background .1s;
+            user-select: none;
+        }
+
+        .filter-option:hover { background: #f4f4f4; }
+
+        .filter-option input[type="checkbox"] {
+            accent-color: var(--primary-c);
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .filter-option.checked {
+            font-weight: 600;
+            color: var(--primary-c);
         }
     </style>
 </head>
@@ -237,7 +300,7 @@
         identifying, comparing, and improving RUTF products that save lives around the world.
     </p>
 
-    <!-- MAP PANEL (outside CatalogueTable so it doesn't interfere with rounded corners) -->
+    <!-- MAP PANEL -->
     <div id="mapPanelWrapper">
         <div id="mapPanel">
             <div id="mapPanelInner">
@@ -264,30 +327,35 @@
         <div class="controls">
             <div class="filters" aria-label="Filters">
 
-                <!-- Toggle map button -->
                 <button class="btn-1" id="toggleMapBtn" title="Open/close map filter">
                     <img src="https://img.icons8.com/fluency-systems-filled/1000/globe--v1.png">
                     Map
                     <span class="map-count-badge" id="mapCountBadge">0</span>
                 </button>
 
-                <label>
-                    <select id="continentSelect">
-                        <option value="">Continent</option>
-                    </select>
-                </label>
+                <div class="custom-filter" id="filter-continent">
+                    <button class="filter-btn">
+                        <span class="filter-label">Continent</span>
+                        <img class="filter-arrow" src="https://img.icons8.com/fluency-systems-filled/100/expand-arrow.png">
+                    </button>
+                    <div class="filter-dropdown"></div>
+                </div>
 
-                <label>
-                    <select id="countrySelect">
-                        <option value="">Country</option>
-                    </select>
-                </label>
+                <div class="custom-filter" id="filter-country">
+                    <button class="filter-btn">
+                        <span class="filter-label">Country</span>
+                        <img class="filter-arrow" src="https://img.icons8.com/fluency-systems-filled/100/expand-arrow.png">
+                    </button>
+                    <div class="filter-dropdown"></div>
+                </div>
 
-                <label>
-                    <select id="typeSelect">
-                        <option value="">Production type</option>
-                    </select>
-                </label>
+                <div class="custom-filter" id="filter-type">
+                    <button class="filter-btn">
+                        <span class="filter-label">Production type</span>
+                        <img class="filter-arrow" src="https://img.icons8.com/fluency-systems-filled/100/expand-arrow.png">
+                    </button>
+                    <div class="filter-dropdown"></div>
+                </div>
 
                 <div id="extraFiltersContainer"></div>
 
@@ -344,40 +412,136 @@
         };
 
         /******************************************************************
-         * MAP — state & helpers
+         * CUSTOM FILTERS — état multi-sélection (déclaré tôt car utilisé par la carte)
          ******************************************************************/
-        // Countries selected via the map (Set of country name strings)
+        const filterState = {
+            continent: new Set(),
+            country:   new Set(),
+            type:      new Set()
+        };
+
+        const filterDefaults = {
+            continent: 'Continent',
+            country:   'Country',
+            type:      'Production type'
+        };
+
+        function updateFilterBtnLabel(filterId, filterKey) {
+            const selected = filterState[filterKey];
+            const $label = $(`#filter-${filterId} .filter-label`);
+            if (selected.size === 0) {
+                $label.text(filterDefaults[filterId]);
+            } else if (selected.size === 1) {
+                $label.text(Array.from(selected)[0]);
+            } else {
+                $label.text(`${Array.from(selected)[0]} +${selected.size - 1}`);
+            }
+        }
+
+        function rebuildCountryDropdown() {
+            const activeContinents = filterState.continent;
+            let allowedCountries;
+            if (activeContinents.size === 0) {
+                allowedCountries = catalogueCountriesSet;
+            } else {
+                allowedCountries = new Set();
+                activeContinents.forEach(cont => {
+                    (window._continentToCountries[cont] || new Set()).forEach(c => allowedCountries.add(c));
+                });
+                // Retirer de filterState.country les pays exclus par le filtre continent
+                filterState.country.forEach(c => {
+                    if (!allowedCountries.has(c)) filterState.country.delete(c);
+                });
+            }
+            buildDropdown('country', allowedCountries, 'country');
+            updateFilterBtnLabel('country', 'country');
+            $('#filter-country').toggleClass('active', filterState.country.size > 0);
+        }
+
+        function buildDropdown(filterId, values, filterKey) {
+            const $drop = $(`#filter-${filterId} .filter-dropdown`).empty();
+            Array.from(values).sort().forEach(val => {
+                const isChecked = filterState[filterKey].has(val);
+                const $opt = $(`
+                    <label class="filter-option ${isChecked ? 'checked' : ''}">
+                        <input type="checkbox" value="${val}" ${isChecked ? 'checked' : ''}>
+                        ${val}
+                    </label>
+                `);
+                $opt.find('input').on('change', function () {
+                    if (this.checked) {
+                        filterState[filterKey].add(val);
+                        $opt.addClass('checked');
+                    } else {
+                        filterState[filterKey].delete(val);
+                        $opt.removeClass('checked');
+                    }
+                    updateFilterBtnLabel(filterId, filterKey);
+                    $(`#filter-${filterId}`).toggleClass('active', filterState[filterKey].size > 0);
+
+                    if (filterKey === 'continent') rebuildCountryDropdown();
+
+                    if (filterKey === 'country') {
+                        // Synchroniser mapSelectedCountries avec filterState.country
+                        mapSelectedCountries.clear();
+                        filterState.country.forEach(c => mapSelectedCountries.add(c));
+                        // Mettre à jour les styles carte
+                        catalogueCountriesSet.forEach(c => {
+                            if (countryLayers[c])
+                                countryLayers[c].setStyle(getCountryStyle(c, mapSelectedCountries.has(c)));
+                        });
+                        renderMapTags();
+                        updateMapBadge();
+                    }
+
+                    if (window._dtTable) window._dtTable.draw();
+                });
+                $drop.append($opt);
+            });
+        }
+
+        // Fermer dropdowns au clic extérieur
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.custom-filter').length)
+                $('.custom-filter').removeClass('open');
+            if (!$(e.target).closest('#openExportOverlayMenu').length)
+                $('#exportOverlayMenu').hide();
+            if (!$(e.target).closest('#tableSearchBar').length && $('#searchInput').val() === '')
+                $('#searchInput').hide();
+        });
+
+        $(document).on('click', '.filter-btn', function (e) {
+            e.stopPropagation();
+            const $wrap = $(this).closest('.custom-filter');
+            const wasOpen = $wrap.hasClass('open');
+            $('.custom-filter').removeClass('open');
+            if (!wasOpen) $wrap.addClass('open');
+        });
+
+        /******************************************************************
+         * MAP — état & helpers
+         ******************************************************************/
         const mapSelectedCountries = new Set();
 
-        // Mapping GeoJSON country names → your catalogue country names
-        // GeoJSON uses slightly different names; extend this list as needed
         const geoNameToMine = {
             "United States of America": "United States",
             "Republic of Korea": "South Korea",
             "Dem. Rep. Congo": "DR Congo",
-            "United Kingdom": "United Kingdom",
         };
 
-        // Countries present in catalogue (filled after data load)
         let catalogueCountriesSet = new Set();
-
-        // Leaflet layer references keyed by catalogue country name
         const countryLayers = {};
-
         let leafletMap = null;
-        let geojsonLayer = null;
 
         function getCatalogueNameForGeo(geoName) {
             return geoNameToMine[geoName] || geoName;
         }
 
         function getCountryStyle(catalogueName, isSelected) {
-            if (isSelected) {
+            if (isSelected)
                 return { fillColor: "#b5d4f4", fillOpacity: 0.9, color: "#005fb6", weight: 1.5 };
-            }
-            if (catalogueCountriesSet.has(catalogueName)) {
+            if (catalogueCountriesSet.has(catalogueName))
                 return { fillColor: "#005fb6", fillOpacity: 0.75, color: "#003d80", weight: 1 };
-            }
             return { fillColor: "#d8d8d8", fillOpacity: 0.4, color: "#bbb", weight: 0.5 };
         }
 
@@ -391,131 +555,97 @@
                 worldCopyJump: false
             }).setView([20, 10], 2);
 
-            // CartoDB light tiles — no API key needed
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-                subdomains: 'abcd',
-                maxZoom: 10
+                subdomains: 'abcd', maxZoom: 10
             }).addTo(leafletMap);
 
-            // Load GeoJSON countries (Natural Earth, public domain via jsdelivr)
-            fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
-                .then(r => r.json())
-                .then(world => {
-                    // world-atlas uses TopoJSON — convert with topojson-client if available,
-                    // otherwise use the pre-converted GeoJSON from a separate source
-                    loadCountriesGeoJSON();
-                })
-                .catch(() => loadCountriesGeoJSON());
-        }
-
-        function loadCountriesGeoJSON() {
-            fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+            fetch('https://cdn.jsdelivr.net/npm/countries-geojson@1.0.0/countries.geojson')
                 .then(r => r.json())
                 .then(geojson => renderGeoJSON(geojson))
-                .catch(err => console.warn('Could not load GeoJSON:', err));
+                .catch(() => {
+                    fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+                        .then(r => r.json())
+                        .then(geojson => renderGeoJSON(geojson))
+                        .catch(err => console.warn('GeoJSON load failed:', err));
+                });
         }
 
         function renderGeoJSON(geojson) {
-            geojsonLayer = L.geoJSON(geojson, {
+            L.geoJSON(geojson, {
                 style: function (feature) {
-                    const geoName = feature.properties.ADMIN || feature.properties.name || "";
-                    const catName = getCatalogueNameForGeo(geoName);
+                    const catName = getCatalogueNameForGeo(feature.properties.ADMIN || feature.properties.name || "");
                     return getCountryStyle(catName, mapSelectedCountries.has(catName));
                 },
                 onEachFeature: function (feature, layer) {
-                    const geoName = feature.properties.ADMIN || feature.properties.name || "";
-                    const catName = getCatalogueNameForGeo(geoName);
+                    const catName = getCatalogueNameForGeo(feature.properties.ADMIN || feature.properties.name || "");
 
                     if (!catalogueCountriesSet.has(catName)) {
-                        layer.on('mouseover', function () {
-                            layer.setStyle({ fillOpacity: 0.55 });
-                        });
-                        layer.on('mouseout', function () {
-                            layer.setStyle(getCountryStyle(catName, false));
-                        });
-                        return; // non-catalogue countries: hover only, no click
+                        layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.55 }));
+                        layer.on('mouseout',  () => layer.setStyle(getCountryStyle(catName, false)));
+                        return;
                     }
 
-                    // Store reference
                     countryLayers[catName] = layer;
 
                     layer.on('mouseover', function () {
-                        if (!mapSelectedCountries.has(catName)) {
+                        if (!mapSelectedCountries.has(catName))
                             layer.setStyle({ fillColor: "#56acfc", fillOpacity: 0.7, color: "#005fb6", weight: 1.5 });
-                        }
-                        layer.bindTooltip(catName, { sticky: true, className: 'leaflet-tooltip-country' }).openTooltip();
+                        layer.bindTooltip(catName, { sticky: true }).openTooltip();
                     });
-
                     layer.on('mouseout', function () {
                         layer.setStyle(getCountryStyle(catName, mapSelectedCountries.has(catName)));
                         layer.closeTooltip();
                     });
-
                     layer.on('click', function () {
-                        if (mapSelectedCountries.has(catName)) {
-                            mapSelectedCountries.delete(catName);
-                        } else {
-                            mapSelectedCountries.add(catName);
-                        }
+                        if (mapSelectedCountries.has(catName)) mapSelectedCountries.delete(catName);
+                        else mapSelectedCountries.add(catName);
+
                         layer.setStyle(getCountryStyle(catName, mapSelectedCountries.has(catName)));
-                        syncMapFilterToTable();
+
+                        // Synchroniser filterState.country avec la carte
+                        filterState.country.clear();
+                        mapSelectedCountries.forEach(c => filterState.country.add(c));
+                        updateFilterBtnLabel('country', 'country');
+                        $('#filter-country').toggleClass('active', filterState.country.size > 0);
+                        rebuildCountryDropdown();
+
                         renderMapTags();
                         updateMapBadge();
+                        if (window._dtTable) window._dtTable.draw();
                     });
                 }
             }).addTo(leafletMap);
-        }
 
-        function adjustSelectWidth(select) {
-            const tmp = document.createElement("span");
-            tmp.style.visibility = "hidden";
-            tmp.style.whiteSpace = "nowrap";
-            tmp.style.font = window.getComputedStyle(select).font;
-            tmp.textContent = select.options[select.selectedIndex].text;
-            document.body.appendChild(tmp);
-            select.style.width = tmp.offsetWidth + 55 + "px";
-            tmp.remove();
+            // À l'ouverture : appliquer les sélections déjà actives dans filterState.country
+            filterState.country.forEach(c => {
+                mapSelectedCountries.add(c);
+                if (countryLayers[c])
+                    countryLayers[c].setStyle(getCountryStyle(c, true));
+            });
+            renderMapTags();
+            updateMapBadge();
         }
-
-        function syncMapFilterToTable() {
-            if (mapSelectedCountries.size === 1) {
-                const only = Array.from(mapSelectedCountries)[0];
-                if ($('#countrySelect option[value="' + only + '"]').length) {
-                    $('#countrySelect').val(only);
-                    adjustSelectWidth(document.getElementById('countrySelect'));
-                    $('#countrySelect').closest('label').addClass('active');
-                }
-            } else {
-                // Multi-sélection carte : le select repasse à vide
-                $('#countrySelect').val('');
-                adjustSelectWidth(document.getElementById('countrySelect'));
-                $('#countrySelect').closest('label').removeClass('active');
-            }
-            if (window._dtTable) window._dtTable.draw();
-        }
-
 
         function renderMapTags() {
-            const $tags = $('#mapActiveTags');
-            $tags.empty();
-
+            const $tags = $('#mapActiveTags').empty();
             if (mapSelectedCountries.size === 0) {
                 $tags.append('<span class="tag-label">No country selected</span>');
                 return;
             }
-
             $tags.append('<span class="tag-label">Active:</span>');
             mapSelectedCountries.forEach(c => {
                 const $tag = $(`<span class="map-tag">${c} <span class="x">×</span></span>`);
                 $tag.on('click', function () {
                     mapSelectedCountries.delete(c);
-                    // Update layer style
-                    if (countryLayers[c]) {
-                        countryLayers[c].setStyle(getCountryStyle(c, false));
-                    }
-                    syncMapFilterToTable();
+                    if (countryLayers[c]) countryLayers[c].setStyle(getCountryStyle(c, false));
+                    // Sync → filtre Country
+                    filterState.country.delete(c);
+                    updateFilterBtnLabel('country', 'country');
+                    $('#filter-country').toggleClass('active', filterState.country.size > 0);
+                    rebuildCountryDropdown();
                     renderMapTags();
                     updateMapBadge();
+                    if (window._dtTable) window._dtTable.draw();
                 });
                 $tags.append($tag);
             });
@@ -523,38 +653,21 @@
 
         function updateMapBadge() {
             const n = mapSelectedCountries.size;
-            const $badge = $('#mapCountBadge');
             if (n > 0) {
-                $badge.text(n).addClass('visible');
+                $('#mapCountBadge').text(n).addClass('visible');
                 $('#toggleMapBtn').addClass('active');
             } else {
-                $badge.removeClass('visible');
-                if (!$('#mapPanel').hasClass('open')) {
+                $('#mapCountBadge').removeClass('visible');
+                if (!$('#mapPanel').hasClass('open'))
                     $('#toggleMapBtn').removeClass('active');
-                }
             }
         }
 
         function clearMapSelection() {
             mapSelectedCountries.forEach(c => {
-                if (countryLayers[c]) {
-                    countryLayers[c].setStyle(getCountryStyle(c, false));
-                }
+                if (countryLayers[c]) countryLayers[c].setStyle(getCountryStyle(c, false));
             });
             mapSelectedCountries.clear();
-            renderMapTags();
-            updateMapBadge();
-            if (window._dtTable) window._dtTable.draw();
-        }
-
-        function syncSelectToMap() {
-            const selectedCountry = $('#countrySelect').val();
-            if (!selectedCountry) return;
-            mapSelectedCountries.add(selectedCountry);
-            // Mettre à jour le style de la couche si elle est déjà chargée
-            if (countryLayers[selectedCountry]) {
-                countryLayers[selectedCountry].setStyle(getCountryStyle(selectedCountry, true));
-            }
             renderMapTags();
             updateMapBadge();
         }
@@ -568,17 +681,20 @@
             $panel.toggleClass('open');
             $(this).toggleClass('active', !isOpen || mapSelectedCountries.size > 0);
 
-            // Init map on first open (avoids rendering issues)
             if (!isOpen && !leafletMap) {
-                setTimeout(() => {
-                    initLeafletMap();
-                    syncSelectToMap();
-                }, 50);
+                setTimeout(initLeafletMap, 50);
             }
             if (!isOpen && leafletMap) {
                 setTimeout(() => {
                     leafletMap.invalidateSize();
-                    syncSelectToMap();
+                    // Ré-appliquer les sélections actives sur la carte
+                    filterState.country.forEach(c => {
+                        mapSelectedCountries.add(c);
+                        if (countryLayers[c])
+                            countryLayers[c].setStyle(getCountryStyle(c, true));
+                    });
+                    renderMapTags();
+                    updateMapBadge();
                 }, 350);
             }
         });
@@ -594,7 +710,7 @@
                 }
 
                 /**********************
-                 * Préparation des filtres
+                 * Préparation des données
                  **********************/
                 const countriesSet = new Set();
                 const typesSet = new Set();
@@ -602,7 +718,7 @@
 
                 data.forEach(row => {
                     const rawLoc = row[FIELD.productionLocation] || "";
-                    let country = rawLoc.includes(",") ? rawLoc.split(",").pop().trim() : rawLoc.trim();
+                    const country = rawLoc.includes(",") ? rawLoc.split(",").pop().trim() : rawLoc.trim();
                     if (country) countriesSet.add(country);
                     if (row[FIELD.type]) typesSet.add(row[FIELD.type]);
                     Object.values(ENABLED_FILTERS).forEach(col => {
@@ -611,7 +727,6 @@
                     });
                 });
 
-                // Populate map catalogue set
                 catalogueCountriesSet = new Set(countriesSet);
 
                 const continentToCountries = {};
@@ -620,28 +735,26 @@
                     if (!continentToCountries[cont]) continentToCountries[cont] = new Set();
                     continentToCountries[cont].add(c);
                 });
+                window._continentToCountries = continentToCountries;
 
-                const $continent = $('#continentSelect');
-                Object.keys(continentToCountries).sort().forEach(c => $continent.append(`<option value="${c}">${c}</option>`));
+                // Construction des dropdowns custom
+                buildDropdown('continent', Object.keys(continentToCountries), 'continent');
+                buildDropdown('country', countriesSet, 'country');
+                buildDropdown('type', typesSet, 'type');
 
-                const $country = $('#countrySelect');
-                Array.from(countriesSet).sort().forEach(c => $country.append(`<option value="${c}">${c}</option>`));
-
-                const $type = $('#typeSelect');
-                Array.from(typesSet).sort().forEach(t => $type.append(`<option value="${t}">${t}</option>`));
-
+                // Extra filters
                 const $extra = $('#extraFiltersContainer');
                 Object.entries(ENABLED_FILTERS).forEach(([label, col]) => {
                     const setValues = Array.from(extraSets[col] || []);
                     if (setValues.length === 0) return;
                     const id = 'filter_' + col.replace(/\s+/g, '_');
                     const $sel = $(`<label>${label} <select id="${id}"><option value="">All</option></select></label>`);
-                    setValues.forEach(v => $sel.find('select').append(`<option value="${v}">${v}</option>`));
+                    setValues.sort().forEach(v => $sel.find('select').append(`<option value="${v}">${v}</option>`));
                     $extra.append($sel);
                 });
 
                 /**********************
-                 * Colonnes
+                 * Colonnes DataTable
                  **********************/
                 const allKeys = Object.keys(data[0]);
                 const visibleKeys = [FIELD.name, FIELD.type, FIELD.productionLocation, FIELD.cost, FIELD.link];
@@ -650,13 +763,9 @@
                 const columns = allKeys.map(key => {
                     if (key === FIELD.link) {
                         return {
-                            title: "",
-                            data: key,
-                            render: function () {
-                                return `<img height="20" src="https://img.icons8.com/material-rounded/500/visible.png">`;
-                            },
-                            orderable: false,
-                            searchable: false
+                            title: "", data: key,
+                            render: () => `<img height="20" src="https://img.icons8.com/material-rounded/500/visible.png">`,
+                            orderable: false, searchable: false
                         };
                     }
                     return { title: key, data: key };
@@ -666,8 +775,7 @@
                  * DataTable init
                  **********************/
                 const table = $('#nutritionTable').DataTable({
-                    data,
-                    columns,
+                    data, columns,
                     pageLength: 20,
                     responsive: false,
                     dom: 'Bfrtip',
@@ -676,23 +784,14 @@
                         { targets: hiddenKeys.map(k => allKeys.indexOf(k)), visible: false, searchable: true }
                     ],
                     buttons: [
-                        {
-                            extend: 'copyHtml5', text: 'Copy', className: 'btn-1',
-                            exportOptions: { columns: () => true, rows: ':visible' }
-                        },
-                        {
-                            extend: 'csvHtml5', text: 'CSV', className: 'btn-1',
-                            exportOptions: { columns: () => true, rows: ':visible' }
-                        },
-                        {
-                            extend: 'excelHtml5', text: 'Excel', className: 'btn-1',
-                            exportOptions: { columns: () => true, rows: ':visible' }
-                        },
+                        { extend: 'copyHtml5',  text: 'Copy',  className: 'btn-1', exportOptions: { columns: () => true, rows: ':visible' } },
+                        { extend: 'csvHtml5',   text: 'CSV',   className: 'btn-1', exportOptions: { columns: () => true, rows: ':visible' } },
+                        { extend: 'excelHtml5', text: 'Excel', className: 'btn-1', exportOptions: { columns: () => true, rows: ':visible' } },
                         {
                             extend: 'pdfHtml5', text: 'PDF', className: 'btn-1',
                             orientation: 'landscape', pageSize: 'A4',
                             exportOptions: { columns: () => true, rows: ':visible' },
-                            customize: function (doc) {
+                            customize: doc => {
                                 doc.styles.tableHeader.alignment = 'left';
                                 doc.defaultStyle.fontSize = 9;
                                 doc.pageMargins = [40, 40, 40, 40];
@@ -701,19 +800,18 @@
                     ]
                 });
 
-                // Expose table globally for map sync
                 window._dtTable = table;
 
                 /**********************
                  * Export buttons
                  **********************/
                 $('#exportClipboard').on('click', () => table.button('.buttons-copy').trigger());
-                $('#exportCSV').on('click', () => table.button('.buttons-csv').trigger());
-                $('#exportExcel').on('click', () => table.button('.buttons-excel').trigger());
-                $('#exportPDF').on('click', () => table.button('.buttons-pdf').trigger());
+                $('#exportCSV').on('click',       () => table.button('.buttons-csv').trigger());
+                $('#exportExcel').on('click',     () => table.button('.buttons-excel').trigger());
+                $('#exportPDF').on('click',       () => table.button('.buttons-pdf').trigger());
 
                 /**********************
-                 * Accent-insensitive search
+                 * Recherche accent-insensitive
                  **********************/
                 function normalizeText(text) {
                     return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -722,116 +820,66 @@
                     return !data ? '' : typeof data === 'string' ? normalizeText(data) : data;
                 };
 
-                $('#toggleSearch').on('click', function (e) {
-                    e.stopPropagation();
-                    $('#searchInput').animate({ width: 'toggle' }, 150).focus();
-                });
-
-                $(document).on('click', function (e) {
-                    if (!$(e.target).closest('#tableSearchBar').length && $('#searchInput').val() == "") {
-                        $('#searchInput').hide();
-                    }
-                    if (!$(e.target).closest('#openExportOverlayMenu').length) {
-                        $('#exportOverlayMenu').hide();
-                    }
-                });
-
                 $(document).on('keyup', '#searchInput', function () {
-                    const value = $(this).val().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-                    table.search(value).draw();
+                    table.search($(this).val().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()).draw();
                 });
 
                 /**********************
-                 * Custom filter (selects + MAP)
+                 * Filtre DataTables — source unique : filterState
+                 **********************
+                 * filterState.country et mapSelectedCountries sont TOUJOURS synchronisés.
+                 * Le filtre ne lit que filterState — pas de logique carte séparée.
                  **********************/
                 $.fn.dataTable.ext.search.push(function (_, __, dataIndex) {
                     const row = table.row(dataIndex).data();
                     if (!row) return true;
 
-                    const continent = $('#continentSelect').val();
-                    const country = $('#countrySelect').val();
-                    const type = $('#typeSelect').val();
-
                     const rowLoc = row[FIELD.productionLocation] || "";
                     const rowCountry = rowLoc.includes(",") ? rowLoc.split(",").pop().trim() : rowLoc.trim();
+                    const rowCont = countryToContinent[rowCountry] || "Other / Unknown";
 
-                    // MAP filter — takes priority if selections exist
-                    if (mapSelectedCountries.size > 0) {
-                        if (!mapSelectedCountries.has(rowCountry)) return false;
-                    } else {
-                        // Dropdown country filter
-                        if (country && !rowLoc.toLowerCase().includes(country.toLowerCase()))
-                            return false;
-
-                        // Continent filter (only when no country selected)
-                        if (!country && continent) {
-                            const cont = countryToContinent[rowCountry] || "Other / Unknown";
-                            if (cont !== continent) return false;
-                        }
+                    // Country (prioritaire sur Continent)
+                    if (filterState.country.size > 0) {
+                        if (!filterState.country.has(rowCountry)) return false;
+                    } else if (filterState.continent.size > 0) {
+                        if (!filterState.continent.has(rowCont)) return false;
                     }
 
-                    if (type && (row[FIELD.type] || "").toLowerCase() !== type.toLowerCase())
-                        return false;
+                    // Type
+                    if (filterState.type.size > 0) {
+                        if (!filterState.type.has(row[FIELD.type])) return false;
+                    }
+
+                    // Extra filters natifs
+                    for (const [, col] of Object.entries(ENABLED_FILTERS)) {
+                        const val = $(`#filter_${col.replace(/\s+/g, '_')}`).val();
+                        if (val && (row[col] || '') !== val) return false;
+                    }
 
                     return true;
                 });
 
                 /**********************
-                 * Dropdown filter events
+                 * Reset
                  **********************/
-                $('#continentSelect').on('change', function () {
-                    const cont = $(this).val();
-                    $country.find('option').remove().append('<option value="">Country</option>');
-                    if (!cont)
-                        Array.from(countriesSet).sort().forEach(c => $country.append(`<option value="${c}">${c}</option>`));
-                    else
-                        Array.from(continentToCountries[cont] || []).sort().forEach(c => $country.append(`<option value="${c}">${c}</option>`));
-                    table.draw();
-                });
-
-                $('#typeSelect, #extraFiltersContainer select').on('change', () => table.draw());
-
-                $('#countrySelect').on('change', function () {
-                    const val = $(this).val();
-                    // Vider la sélection carte et la remplacer par la valeur du select
-                    clearMapSelection();
-                    if (val) {
-                        mapSelectedCountries.add(val);
-                        if (countryLayers[val]) {
-                            countryLayers[val].setStyle(getCountryStyle(val, true));
-                        }
-                        renderMapTags();
-                        updateMapBadge();
-                    }
-                    table.draw();
-                });
-
-
-                document.querySelectorAll('.filters select').forEach(select => {
-                    adjustSelectWidth(select);
-                    select.addEventListener('change', () => {
-                        adjustSelectWidth(select);
-                        const wrapper = select.closest('label');
-                        wrapper.classList.toggle('active', select.value !== "");
-                    });
-                });
-
                 $('#resetFilters').on('click', () => {
-                    // Reset valeurs
-                    $('#continentSelect, #countrySelect, #typeSelect').val('');
+                    filterState.continent.clear();
+                    filterState.country.clear();
+                    filterState.type.clear();
+
+                    ['continent', 'country', 'type'].forEach(key => {
+                        updateFilterBtnLabel(key, key);
+                        $(`#filter-${key}`).removeClass('active open');
+                    });
+
+                    buildDropdown('continent', Object.keys(continentToCountries), 'continent');
+                    buildDropdown('country', countriesSet, 'country');
+                    buildDropdown('type', typesSet, 'type');
+
                     $('#extraFiltersContainer select').val('');
                     table.search('').draw();
                     $('#searchInput').val('').hide();
 
-                    // Reset largeur + classe active sur TOUS les selects des filtres
-                    document.querySelectorAll('.filters select, #extraFiltersContainer select').forEach(select => {
-                        select.value = '';
-                        adjustSelectWidth(select);
-                        const wrapper = select.closest('label');
-                        if (wrapper) wrapper.classList.remove('active');
-                    });
-
-                    // Reset carte
                     clearMapSelection();
                 });
 
@@ -839,11 +887,9 @@
                  * Row click → detail
                  **********************/
                 $('#nutritionTable tbody').on('click', 'td:last-child', function () {
-                    const tr = $(this).closest('tr');
-                    const row = table.row(tr).data();
-                    if (row && row[FIELD.name]) {
+                    const row = table.row($(this).closest('tr')).data();
+                    if (row && row[FIELD.name])
                         window.location.href = `detail.html?product=${encodeURIComponent(row[FIELD.name])}`;
-                    }
                 });
             });
         });
